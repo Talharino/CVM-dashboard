@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CVM Dashboard — Movimentações de Insiders</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f5f5f3;
+      --bg3: #eeede8;
+      --text: #1a1a18;
+      --text2: #6b6b67;
+      --border: rgba(0,0,0,0.12);
+      --buy: #1D9E75;
+      --sell: #D85A30;
+      --line: #378ADD;
+      --radius: 10px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg2: #242422;
+        --bg3: #2e2e2b;
+        --text: #e8e6de;
+        --text2: #9c9a92;
+        --border: rgba(255,255,255,0.1);
+      }
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header { border-bottom: 0.5px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 17px; font-weight: 500; }
+    header span { font-size: 12px; color: var(--text2); background: var(--bg2); padding: 3px 8px; border-radius: 20px; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+
+    .search-card { background: var(--bg2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; border: 0.5px solid var(--border); }
+    .search-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .search-row input, .search-row select {
+      flex: 1; min-width: 160px; height: 38px; border-radius: 8px;
+      border: 0.5px solid var(--border); background: var(--bg);
+      color: var(--text); font-size: 14px; padding: 0 12px; outline: none;
+    }
+    .search-row input:focus, .search-row select:focus { border-color: var(--line); }
+    .search-row button {
+      height: 38px; padding: 0 18px; border-radius: 8px;
+      border: 0.5px solid var(--border); background: var(--bg);
+      color: var(--text); font-size: 14px; cursor: pointer; white-space: nowrap;
+    }
+    .search-row button:hover { background: var(--bg3); }
+
+    .sug-box { background: var(--bg); border: 0.5px solid var(--border); border-radius: 8px; margin-top: 6px; display: none; max-height: 200px; overflow-y: auto; }
+    .sug-item { padding: 9px 12px; cursor: pointer; font-size: 13px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+    .sug-item:hover { background: var(--bg2); }
+    .sug-item:last-child { border-bottom: none; }
+    .sug-item strong { color: var(--line); }
+
+    .status { text-align: center; padding: 2.5rem; font-size: 14px; color: var(--text2); }
+
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+    .metric { background: var(--bg2); border-radius: var(--radius); padding: 1rem; border: 0.5px solid var(--border); }
+    .metric .lbl { font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+    .metric .val { font-size: 22px; font-weight: 500; }
+    .metric .val.sm { font-size: 14px; }
+    .metric .val.buy { color: var(--buy); }
+    .metric .val.sell { color: var(--sell); }
+
+    .chart-section { background: var(--bg2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; border: 0.5px solid var(--border); }
+    .sec-lbl { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 10px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 12px; color: var(--text2); }
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .chart-wrap { position: relative; width: 100%; height: 300px; }
+    .chart-wrap2 { position: relative; width: 100%; height: 150px; }
+
+    footer { text-align: center; padding: 2rem; font-size: 12px; color: var(--text2); border-top: 0.5px solid var(--border); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>CVM Dashboard</h1>
+  <span>Movimentações de insiders</span>
+</header>
+
+<main>
+  <div class="search-card">
+    <div class="search-row">
+      <input type="text" id="cvmInput" placeholder="Código CVM ou nome da empresa..." autocomplete="off"/>
+      <select id="grupoSelect">
+        <option value="">Todos os grupos</option>
+        <option value="Diretoria">Diretoria</option>
+        <option value="Conselho">Conselho de Administração</option>
+        <option value="Controlador">Controlador</option>
+        <option value="Conselho Fiscal">Conselho Fiscal</option>
+      </select>
+      <button onclick="buscar()">Buscar</button>
+    </div>
+    <div id="sugBox" class="sug-box"></div>
+  </div>
+
+  <div id="statusMsg" class="status">Digite o código CVM ou o nome da empresa para começar.</div>
+
+  <div id="metrics" class="metrics" style="display:none">
+    <div class="metric"><div class="lbl">Empresa</div><div class="val sm" id="mEmpresa">—</div></div>
+    <div class="metric"><div class="lbl">Ticker B3</div><div class="val sm" id="mTicker">—</div></div>
+    <div class="metric"><div class="lbl">Compras à vista</div><div class="val buy" id="mCompras">0</div></div>
+    <div class="metric"><div class="lbl">Vendas à vista</div><div class="val sell" id="mVendas">0</div></div>
+    <div class="metric"><div class="lbl">Volume total</div><div class="val sm" id="mVolume">—</div></div>
+  </div>
+
+  <div id="chartArea" style="display:none">
+    <div class="chart-section">
+      <div class="sec-lbl">Cotação histórica + dias com movimentação de insiders (desde 01/01/2026)</div>
+      <div class="legend">
+        <span><span style="display:inline-block;width:24px;height:2px;background:var(--line);border-radius:0"></span> Fechamento</span>
+        <span><span class="dot" style="background:var(--buy);border-radius:50%"></span> Compra à vista</span>
+        <span><span class="dot" style="background:var(--sell);transform:rotate(45deg)"></span> Venda à vista</span>
+      </div>
+      <div class="chart-wrap"><canvas id="priceChart" role="img" aria-label="Cotação histórica com movimentações de insiders"></canvas></div>
+    </div>
+
+    <div class="chart-section">
+      <div class="sec-lbl">Volume financeiro das operações por dia (R$)</div>
+      <div class="chart-wrap2"><canvas id="volChart" role="img" aria-label="Volume financeiro das operações por dia"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<footer>Dados: CVM (movimentações) + Yahoo Finance (cotações) · Apenas compra/venda à vista · realizadas_operacoes = Sim</footer>
+
+<script>
+const SUPA_URL = 'https://uqadyxirtmeqybgobmai.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxYWR5eGlydG1lcXliZ29ibWFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODAxNzcsImV4cCI6MjA5NDg1NjE3N30.7Wpcj_puMVHoXVdvdPt-_g_I5aSNoSEdzgklkL6pO-0';
+const FN = `${SUPA_URL}/functions/v1`;
+
+let priceChart = null, volChart = null, debTimer = null;
+
+document.getElementById('cvmInput').addEventListener('input', function () {
+  clearTimeout(debTimer);
+  const v = this.value.trim();
+  if (v.length < 2) { hideSug(); return; }
+  debTimer = setTimeout(() => searchCVM(v), 350);
+});
+
+document.getElementById('cvmInput').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') buscar();
+});
+
+async function searchCVM(q) {
+  const isNum = /^\d+$/.test(q);
+  const url = isNum
+    ? `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&codigo_cvm=eq.${q}&limit=1`
+    : `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&nome_companhia=ilike.*${encodeURIComponent(q)}*&limit=8`;
+  try {
+    const r = await fetch(url, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
+    const data = await r.json();
+    const seen = new Set();
+    const uniq = data.filter(d => { if (seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; });
+    showSug(uniq);
+  } catch (e) {}
+}
+
+function showSug(items) {
+  const box = document.getElementById('sugBox');
+  if (!items.length) { box.style.display = 'none'; return; }
+  box.innerHTML = items.map(d =>
+    `<div class="sug-item" onclick="selectCVM('${d.codigo_cvm}','${d.nome_companhia.replace(/'/g, "\\'")}')">
+      <strong>${d.codigo_cvm}</strong> — ${d.nome_companhia}
+    </div>`
+  ).join('');
+  box.style.display = 'block';
+}
+
+function hideSug() { document.getElementById('sugBox').style.display = 'none'; }
+
+function selectCVM(cvm, nome) {
+  document.getElementById('cvmInput').value = cvm;
+  hideSug();
+  buscar();
+}
+
+async function buscar() {
+  const cvm = document.getElementById('cvmInput').value.trim();
+  const grupo = document.getElementById('grupoSelect').value;
+  if (!cvm) { setStatus('Informe o código CVM ou nome da empresa.'); return; }
+
+  setStatus('Buscando movimentações...');
+  document.getElementById('metrics').style.display = 'none';
+  document.getElementById('chartArea').style.display = 'none';
+
+  try {
+    let movUrl = `${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`;
+    if (grupo) movUrl += `&grupo=${encodeURIComponent(grupo)}`;
+
+    const movResp = await fetch(movUrl);
+    const movData = await movResp.json();
+
+    if (movData.error) { setStatus(`Erro: ${movData.error}`); return; }
+    if (!movData.total_movimentacoes) {
+      setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo ? ` (${grupo})` : ''} a partir de 01/01/2026.`);
+      return;
+    }
+
+    const ticker = movData.ticker_yahoo;
+    setStatus(`Carregando cotação ${ticker || '(sem ticker)'}...`);
+
+    let precos = [];
+    if (ticker) {
+      try {
+        const cotResp = await fetch(`${FN}/cotacao?ticker=${ticker}&from=2026-01-01`);
+        const cotData = await cotResp.json();
+        if (cotData.precos) precos = cotData.precos;
+      } catch (e) {}
+    }
+
+    renderMetrics(movData);
+    renderCharts(movData, precos);
+    document.getElementById('statusMsg').style.display = 'none';
+
+  } catch (e) {
+    setStatus('Erro ao buscar dados: ' + e.message);
+  }
+}
+
+function renderMetrics(d) {
+  const vol = d.totais?.vol_total || 0;
+  document.getElementById('mEmpresa').textContent = (d.empresa || '—').slice(0, 30);
+  document.getElementById('mTicker').textContent = d.ticker_b3 || '—';
+  document.getElementById('mCompras').textContent = d.totais?.compra || 0;
+  document.getElementById('mVendas').textContent = d.totais?.venda || 0;
+  document.getElementById('mVolume').textContent = vol >= 1e6
+    ? 'R$ ' + (vol / 1e6).toFixed(1) + 'M'
+    : 'R$ ' + (vol / 1e3).toFixed(0) + 'k';
+  document.getElementById('metrics').style.display = 'grid';
+  document.getElementById('chartArea').style.display = 'block';
+}
+
+function renderCharts(movData, precos) {
+  const porDia = movData.por_dia || {};
+  const allDates = precos.length
+    ? precos.map(p => p.date)
+    : [...new Set(Object.keys(porDia))].sort();
+
+  const priceMap = {};
+  precos.forEach(p => priceMap[p.date] = p.close);
+
+  const labels = allDates.map(d => d.slice(5));
+  const closeData = allDates.map(d => priceMap[d] ?? null);
+  const buyPts = allDates.map(d => porDia[d]?.compra > 0 ? (priceMap[d] ?? null) : null);
+  const sellPts = allDates.map(d => porDia[d]?.venda > 0 ? (priceMap[d] ?? null) : null);
+  const volBuy = allDates.map(d => porDia[d]?.vol_compra || null);
+  const volSell = allDates.map(d => porDia[d]?.vol_venda || null);
+
+  if (priceChart) priceChart.destroy();
+  if (volChart) volChart.destroy();
+
+  priceChart = new Chart(document.getElementById('priceChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Fechamento', data: closeData, borderColor: '#378ADD', borderWidth: 1.5, pointRadius: 0, tension: 0.2, spanGaps: true, yAxisID: 'y' },
+        { label: 'Compra', data: buyPts, type: 'scatter', backgroundColor: '#1D9E75', pointRadius: 8, pointStyle: 'circle', yAxisID: 'y' },
+        { label: 'Venda', data: sellPts, type: 'scatter', backgroundColor: '#D85A30', pointRadius: 8, pointStyle: 'rectRot', yAxisID: 'y' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label === 'Fechamento') return `R$ ${ctx.parsed.y.toFixed(2)}`;
+              const d = allDates[ctx.dataIndex];
+              const info = porDia[d];
+              if (!info) return '';
+              const tipo = ctx.dataset.label === 'Compra' ? 'compra' : 'venda';
+              const vol = tipo === 'compra' ? info.vol_compra : info.vol_venda;
+              const qtd = tipo === 'compra' ? info.qtd_compra : info.qtd_venda;
+              return [`${ctx.dataset.label} à vista`, `Vol: R$ ${(vol / 1e3).toFixed(0)}k`, `Qtd: ${(qtd || 0).toLocaleString('pt-BR')}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 10, font: { size: 11 } }, grid: { display: false } },
+        y: { ticks: { callback: v => 'R$' + v.toFixed(2), font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.08)' } }
+      }
+    }
+  });
+
+  volChart = new Chart(document.getElementById('volChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Compra', data: volBuy, backgroundColor: '#1D9E75' },
+        { label: 'Venda', data: volSell, backgroundColor: '#D85A30' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, ticks: { maxTicksLimit: 10, font: { size: 11 } }, grid: { display: false } },
+        y: { stacked: true, ticks: { callback: v => v >= 1e6 ? 'R$' + (v / 1e6).toFixed(1) + 'M' : 'R$' + (v / 1e3).toFixed(0) + 'k', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function setStatus(msg) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
