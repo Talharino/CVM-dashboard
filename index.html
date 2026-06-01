@@ -4,90 +4,77 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CVM Dashboard — Movimentações de Insiders</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #ffffff;
-      --bg2: #f5f5f3;
-      --bg3: #eeede8;
-      --text: #1a1a18;
-      --text2: #6b6b67;
-      --border: rgba(0,0,0,0.12);
-      --buy: #1D9E75;
-      --sell: #D85A30;
-      --line: #378ADD;
-      --radius: 10px;
+      --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeede8;
+      --text: #1a1a18; --text2: #6b6b67; --border: rgba(0,0,0,0.12);
+      --buy: #1D9E75; --sell: #D85A30; --line: #378ADD; --radius: 10px;
+      --candle-up: #1D9E75; --candle-dn: #D85A30;
     }
     @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1c1c1a;
-        --bg2: #242422;
-        --bg3: #2e2e2b;
-        --text: #e8e6de;
-        --text2: #9c9a92;
-        --border: rgba(255,255,255,0.1);
-      }
+      :root { --bg:#1c1c1a; --bg2:#242422; --bg3:#2e2e2b; --text:#e8e6de; --text2:#9c9a92; --border:rgba(255,255,255,0.1); }
     }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    header { border-bottom:0.5px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:12px; }
+    header h1 { font-size:17px; font-weight:500; }
+    header span { font-size:12px; color:var(--text2); background:var(--bg2); padding:3px 8px; border-radius:20px; }
+    main { max-width:1000px; margin:0 auto; padding:1.5rem; }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .search-card { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.5rem; border:0.5px solid var(--border); }
+    .search-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .search-row input, .search-row select { flex:1; min-width:160px; height:38px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; padding:0 12px; outline:none; }
+    .search-row input:focus, .search-row select:focus { border-color:var(--line); }
+    .search-row button { height:38px; padding:0 18px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; cursor:pointer; }
+    .search-row button:hover { background:var(--bg3); }
+    .sug-box { background:var(--bg); border:0.5px solid var(--border); border-radius:8px; margin-top:6px; display:none; max-height:200px; overflow-y:auto; }
+    .sug-item { padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:0.5px solid var(--border); color:var(--text); }
+    .sug-item:hover { background:var(--bg2); }
+    .sug-item:last-child { border-bottom:none; }
+    .sug-item strong { color:var(--line); }
+    .status { text-align:center; padding:2.5rem; font-size:14px; color:var(--text2); }
 
-    header { border-bottom: 0.5px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; }
-    header h1 { font-size: 17px; font-weight: 500; }
-    header span { font-size: 12px; color: var(--text2); background: var(--bg2); padding: 3px 8px; border-radius: 20px; }
+    .metrics-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
+    .metrics-bottom { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.5rem; }
+    .metric { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
+    .metric .lbl { font-size:12px; color:var(--text2); margin-bottom:5px; }
+    .metric .val { font-size:22px; font-weight:500; }
+    .metric .val.sm { font-size:14px; }
 
-    main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    .op-card { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
+    .op-card.buy-card { border-left:3px solid var(--buy); }
+    .op-card.sell-card { border-left:3px solid var(--sell); }
+    .op-header { margin-bottom:12px; }
+    .badge { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; }
+    .badge.buy { background:rgba(29,158,117,0.12); color:var(--buy); }
+    .badge.sell { background:rgba(216,90,48,0.12); color:var(--sell); }
+    .op-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .op-item .lbl { font-size:11px; color:var(--text2); margin-bottom:3px; }
+    .op-item .val { font-size:18px; font-weight:500; }
+    .op-item .val.buy { color:var(--buy); }
+    .op-item .val.sell { color:var(--sell); }
+    .op-item .val.sm { font-size:13px; color:var(--text); }
 
-    .search-card { background: var(--bg2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; border: 0.5px solid var(--border); }
-    .search-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .search-row input, .search-row select {
-      flex: 1; min-width: 160px; height: 38px; border-radius: 8px;
-      border: 0.5px solid var(--border); background: var(--bg);
-      color: var(--text); font-size: 14px; padding: 0 12px; outline: none;
-    }
-    .search-row input:focus, .search-row select:focus { border-color: var(--line); }
-    .search-row button {
-      height: 38px; padding: 0 18px; border-radius: 8px;
-      border: 0.5px solid var(--border); background: var(--bg);
-      color: var(--text); font-size: 14px; cursor: pointer; white-space: nowrap;
-    }
-    .search-row button:hover { background: var(--bg3); }
+    .chart-section { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; border:0.5px solid var(--border); }
+    .sec-lbl { font-size:13px; font-weight:500; color:var(--text2); margin-bottom:10px; }
+    .legend { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:12px; font-size:12px; color:var(--text2); }
+    .legend span { display:flex; align-items:center; gap:6px; }
+    .dot { display:inline-block; width:10px; height:10px; border-radius:2px; flex-shrink:0; }
 
-    .sug-box { background: var(--bg); border: 0.5px solid var(--border); border-radius: 8px; margin-top: 6px; display: none; max-height: 200px; overflow-y: auto; }
-    .sug-item { padding: 9px 12px; cursor: pointer; font-size: 13px; border-bottom: 0.5px solid var(--border); color: var(--text); }
-    .sug-item:hover { background: var(--bg2); }
-    .sug-item:last-child { border-bottom: none; }
-    .sug-item strong { color: var(--line); }
+    /* Canvas candle */
+    #candleCanvas { width:100%; display:block; cursor:crosshair; }
+    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:1.8; }
+    .candle-wrap { position:relative; }
 
-    .status { text-align: center; padding: 2.5rem; font-size: 14px; color: var(--text2); }
-
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-    .metric { background: var(--bg2); border-radius: var(--radius); padding: 1rem; border: 0.5px solid var(--border); }
-    .metric .lbl { font-size: 12px; color: var(--text2); margin-bottom: 5px; }
-    .metric .val { font-size: 22px; font-weight: 500; }
-    .metric .val.sm { font-size: 14px; }
-    .metric .val.buy { color: var(--buy); }
-    .metric .val.sell { color: var(--sell); }
-
-    .chart-section { background: var(--bg2); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; border: 0.5px solid var(--border); }
-    .sec-lbl { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 10px; }
-    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 12px; color: var(--text2); }
-    .legend span { display: flex; align-items: center; gap: 6px; }
-    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-    .chart-wrap { position: relative; width: 100%; height: 300px; }
-    .chart-wrap2 { position: relative; width: 100%; height: 150px; }
-
-    footer { text-align: center; padding: 2rem; font-size: 12px; color: var(--text2); border-top: 0.5px solid var(--border); margin-top: 2rem; }
+    .chart-wrap2 { position:relative; width:100%; height:140px; }
+    footer { text-align:center; padding:2rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
   </style>
 </head>
 <body>
-
 <header>
   <h1>CVM Dashboard</h1>
   <span>Movimentações de insiders</span>
 </header>
-
 <main>
   <div class="search-card">
     <div class="search-row">
@@ -106,51 +93,73 @@
 
   <div id="statusMsg" class="status">Digite o código CVM ou o nome da empresa para começar.</div>
 
-  <div id="metrics" class="metrics" style="display:none">
+  <div id="metricsTop" class="metrics-top" style="display:none">
     <div class="metric"><div class="lbl">Empresa</div><div class="val sm" id="mEmpresa">—</div></div>
     <div class="metric"><div class="lbl">Ticker B3</div><div class="val sm" id="mTicker">—</div></div>
-    <div class="metric"><div class="lbl">Compras à vista</div><div class="val buy" id="mCompras">0</div></div>
-    <div class="metric"><div class="lbl">Vendas à vista</div><div class="val sell" id="mVendas">0</div></div>
+    <div class="metric"><div class="lbl">Operações</div><div class="val sm" id="mTotal">—</div></div>
     <div class="metric"><div class="lbl">Volume total</div><div class="val sm" id="mVolume">—</div></div>
+  </div>
+
+  <div id="metricsBottom" class="metrics-bottom" style="display:none">
+    <div class="op-card buy-card">
+      <div class="op-header"><span class="badge buy">Compra à vista</span></div>
+      <div class="op-grid">
+        <div class="op-item"><div class="lbl">Operações</div><div class="val buy" id="mCompras">0</div></div>
+        <div class="op-item"><div class="lbl">Qtde de ações</div><div class="val sm" id="mQtdCompra">—</div></div>
+        <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolCompra">—</div></div>
+        <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmCompra">—</div></div>
+      </div>
+    </div>
+    <div class="op-card sell-card">
+      <div class="op-header"><span class="badge sell">Venda à vista</span></div>
+      <div class="op-grid">
+        <div class="op-item"><div class="lbl">Operações</div><div class="val sell" id="mVendas">0</div></div>
+        <div class="op-item"><div class="lbl">Qtde de ações</div><div class="val sm" id="mQtdVenda">—</div></div>
+        <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolVenda">—</div></div>
+        <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmVenda">—</div></div>
+      </div>
+    </div>
   </div>
 
   <div id="chartArea" style="display:none">
     <div class="chart-section">
-      <div class="sec-lbl">Cotação histórica + dias com movimentação de insiders (desde 01/01/2026)</div>
+      <div class="sec-lbl">Candlestick diário + movimentações de insiders (desde 01/01/2026)</div>
       <div class="legend">
-        <span><span style="display:inline-block;width:24px;height:2px;background:var(--line);border-radius:0"></span> Fechamento</span>
-        <span><span class="dot" style="background:var(--buy);border-radius:50%"></span> Compra à vista</span>
-        <span><span class="dot" style="background:var(--sell);transform:rotate(45deg)"></span> Venda à vista</span>
+        <span><span class="dot" style="background:var(--candle-up)"></span>Alta (fechamento > abertura)</span>
+        <span><span class="dot" style="background:var(--candle-dn)"></span>Baixa (fechamento < abertura)</span>
+        <span><span class="dot" style="background:var(--buy);border-radius:50%"></span>Compra insider</span>
+        <span><span class="dot" style="background:var(--sell);transform:rotate(45deg)"></span>Venda insider</span>
       </div>
-      <div class="chart-wrap"><canvas id="priceChart" role="img" aria-label="Cotação histórica com movimentações de insiders"></canvas></div>
+      <div class="candle-wrap">
+        <canvas id="candleCanvas"></canvas>
+        <div class="candle-tooltip" id="candleTooltip"></div>
+      </div>
     </div>
-
     <div class="chart-section">
-      <div class="sec-lbl">Volume financeiro das operações por dia (R$)</div>
+      <div class="sec-lbl">Volume financeiro das operações de insiders por dia (R$)</div>
       <div class="chart-wrap2"><canvas id="volChart" role="img" aria-label="Volume financeiro das operações por dia"></canvas></div>
     </div>
   </div>
 </main>
+<footer>Dados: CVM (movimentações) + Yahoo Finance (cotações reais) · Apenas compra/venda à vista · realizadas_operacoes = Sim</footer>
 
-<footer>Dados: CVM (movimentações) + Yahoo Finance (cotações) · Apenas compra/venda à vista · realizadas_operacoes = Sim</footer>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const SUPA_URL = 'https://uqadyxirtmeqybgobmai.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxYWR5eGlydG1lcXliZ29ibWFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODAxNzcsImV4cCI6MjA5NDg1NjE3N30.7Wpcj_puMVHoXVdvdPt-_g_I5aSNoSEdzgklkL6pO-0';
 const FN = `${SUPA_URL}/functions/v1`;
 
-let priceChart = null, volChart = null, debTimer = null;
+let volChart = null, debTimer = null;
+let gCandles = [], gPorDia = {};
 
+// ── Autocomplete ──
 document.getElementById('cvmInput').addEventListener('input', function () {
   clearTimeout(debTimer);
   const v = this.value.trim();
   if (v.length < 2) { hideSug(); return; }
   debTimer = setTimeout(() => searchCVM(v), 350);
 });
-
-document.getElementById('cvmInput').addEventListener('keydown', function (e) {
-  if (e.key === 'Enter') buscar();
-});
+document.getElementById('cvmInput').addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
 
 async function searchCVM(q) {
   const isNum = /^\d+$/.test(q);
@@ -161,156 +170,261 @@ async function searchCVM(q) {
     const r = await fetch(url, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
     const data = await r.json();
     const seen = new Set();
-    const uniq = data.filter(d => { if (seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; });
-    showSug(uniq);
+    showSug(data.filter(d => { if (seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; }));
   } catch (e) {}
 }
-
 function showSug(items) {
   const box = document.getElementById('sugBox');
-  if (!items.length) { box.style.display = 'none'; return; }
+  if (!items.length) { box.style.display='none'; return; }
   box.innerHTML = items.map(d =>
-    `<div class="sug-item" onclick="selectCVM('${d.codigo_cvm}','${d.nome_companhia.replace(/'/g, "\\'")}')">
-      <strong>${d.codigo_cvm}</strong> — ${d.nome_companhia}
-    </div>`
+    `<div class="sug-item" onclick="selectCVM('${d.codigo_cvm}')"><strong>${d.codigo_cvm}</strong> — ${d.nome_companhia}</div>`
   ).join('');
-  box.style.display = 'block';
+  box.style.display='block';
 }
+function hideSug() { document.getElementById('sugBox').style.display='none'; }
+function selectCVM(cvm) { document.getElementById('cvmInput').value=cvm; hideSug(); buscar(); }
 
-function hideSug() { document.getElementById('sugBox').style.display = 'none'; }
-
-function selectCVM(cvm, nome) {
-  document.getElementById('cvmInput').value = cvm;
-  hideSug();
-  buscar();
+// ── Formatação ──
+function fmt(v) {
+  if (v >= 1e6) return 'R$ '+(v/1e6).toFixed(1)+'M';
+  if (v >= 1e3) return 'R$ '+(v/1e3).toFixed(0)+'k';
+  return 'R$ '+v.toFixed(0);
 }
+function fmtQtd(v) { return Number(v).toLocaleString('pt-BR'); }
 
+// ── Busca principal ──
 async function buscar() {
-  const cvm = document.getElementById('cvmInput').value.trim();
+  const cvm   = document.getElementById('cvmInput').value.trim();
   const grupo = document.getElementById('grupoSelect').value;
   if (!cvm) { setStatus('Informe o código CVM ou nome da empresa.'); return; }
 
   setStatus('Buscando movimentações...');
-  document.getElementById('metrics').style.display = 'none';
-  document.getElementById('chartArea').style.display = 'none';
+  ['metricsTop','metricsBottom','chartArea'].forEach(id => document.getElementById(id).style.display='none');
 
   try {
     let movUrl = `${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`;
     if (grupo) movUrl += `&grupo=${encodeURIComponent(grupo)}`;
-
-    const movResp = await fetch(movUrl);
-    const movData = await movResp.json();
+    const movData = await (await fetch(movUrl)).json();
 
     if (movData.error) { setStatus(`Erro: ${movData.error}`); return; }
-    if (!movData.total_movimentacoes) {
-      setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo ? ` (${grupo})` : ''} a partir de 01/01/2026.`);
-      return;
-    }
+    if (!movData.total_movimentacoes) { setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo?` (${grupo})`:''} a partir de 01/01/2026.`); return; }
 
     const ticker = movData.ticker_yahoo;
-    setStatus(`Carregando cotação ${ticker || '(sem ticker)'}...`);
+    setStatus(`Carregando cotação ${ticker||'(sem ticker)'}...`);
 
-    let precos = [];
+    let candles = [];
     if (ticker) {
       try {
-        const cotResp = await fetch(`${FN}/cotacao?ticker=${ticker}&from=2026-01-01`);
-        const cotData = await cotResp.json();
-        if (cotData.precos) precos = cotData.precos;
-      } catch (e) {}
+        const cotData = await (await fetch(`${FN}/cotacao?ticker=${ticker}&from=2026-01-01`)).json();
+        if (cotData.candles) candles = cotData.candles;
+      } catch(e) {}
     }
+
+    gCandles = candles;
+    gPorDia  = movData.por_dia || {};
 
     renderMetrics(movData);
-    renderCharts(movData, precos);
-    document.getElementById('statusMsg').style.display = 'none';
-
-  } catch (e) {
-    setStatus('Erro ao buscar dados: ' + e.message);
-  }
+    drawCandles();
+    renderVolChart(candles, movData.por_dia || {});
+    document.getElementById('statusMsg').style.display='none';
+  } catch(e) { setStatus('Erro: '+e.message); }
 }
 
+// ── Métricas ──
 function renderMetrics(d) {
-  const vol = d.totais?.vol_total || 0;
-  document.getElementById('mEmpresa').textContent = (d.empresa || '—').slice(0, 30);
-  document.getElementById('mTicker').textContent = d.ticker_b3 || '—';
-  document.getElementById('mCompras').textContent = d.totais?.compra || 0;
-  document.getElementById('mVendas').textContent = d.totais?.venda || 0;
-  document.getElementById('mVolume').textContent = vol >= 1e6
-    ? 'R$ ' + (vol / 1e6).toFixed(1) + 'M'
-    : 'R$ ' + (vol / 1e3).toFixed(0) + 'k';
-  document.getElementById('metrics').style.display = 'grid';
-  document.getElementById('chartArea').style.display = 'block';
+  const t = d.totais || {};
+  let qtdC=0, volC=0, qtdV=0, volV=0;
+  for (const dia of Object.values(d.por_dia||{})) {
+    qtdC += dia.qtd_compra||0; volC += dia.vol_compra||0;
+    qtdV += dia.qtd_venda ||0; volV += dia.vol_venda ||0;
+  }
+  const pmC = qtdC>0 ? volC/qtdC : 0;
+  const pmV = qtdV>0 ? volV/qtdV : 0;
+
+  document.getElementById('mEmpresa').textContent   = (d.empresa||'—').slice(0,30);
+  document.getElementById('mTicker').textContent    = d.ticker_b3||'—';
+  document.getElementById('mTotal').textContent     = ((t.compra||0)+(t.venda||0))+' ops';
+  document.getElementById('mVolume').textContent    = fmt(t.vol_total||0);
+  document.getElementById('mCompras').textContent   = t.compra||0;
+  document.getElementById('mQtdCompra').textContent = fmtQtd(qtdC)+' ações';
+  document.getElementById('mVolCompra').textContent = fmt(volC);
+  document.getElementById('mPmCompra').textContent  = pmC>0?'R$ '+pmC.toFixed(2):'—';
+  document.getElementById('mVendas').textContent    = t.venda||0;
+  document.getElementById('mQtdVenda').textContent  = fmtQtd(qtdV)+' ações';
+  document.getElementById('mVolVenda').textContent  = fmt(volV);
+  document.getElementById('mPmVenda').textContent   = pmV>0?'R$ '+pmV.toFixed(2):'—';
+
+  document.getElementById('metricsTop').style.display    = 'grid';
+  document.getElementById('metricsBottom').style.display = 'grid';
+  document.getElementById('chartArea').style.display     = 'block';
 }
 
-function renderCharts(movData, precos) {
-  const porDia = movData.por_dia || {};
-  const allDates = precos.length
-    ? precos.map(p => p.date)
-    : [...new Set(Object.keys(porDia))].sort();
+// ── Candlestick Chart (canvas 2D) ──
+function drawCandles() {
+  const canvas = document.getElementById('candleCanvas');
+  const wrap   = canvas.parentElement;
+  const W = wrap.clientWidth || 900;
+  const H = 340;
+  canvas.width  = W;
+  canvas.height = H;
 
-  const priceMap = {};
-  precos.forEach(p => priceMap[p.date] = p.close);
+  const ctx = canvas.getContext('2d');
+  const isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const textColor  = isDark ? '#9c9a92' : '#6b6b67';
+  const gridColor  = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const upColor    = '#1D9E75';
+  const dnColor    = '#D85A30';
+  const buyMark    = '#1D9E75';
+  const sellMark   = '#D85A30';
 
-  const labels = allDates.map(d => d.slice(5));
-  const closeData = allDates.map(d => priceMap[d] ?? null);
-  const buyPts = allDates.map(d => porDia[d]?.compra > 0 ? (priceMap[d] ?? null) : null);
-  const sellPts = allDates.map(d => porDia[d]?.venda > 0 ? (priceMap[d] ?? null) : null);
-  const volBuy = allDates.map(d => porDia[d]?.vol_compra || null);
-  const volSell = allDates.map(d => porDia[d]?.vol_venda || null);
+  const data = gCandles;
+  if (!data.length) return;
 
-  if (priceChart) priceChart.destroy();
-  if (volChart) volChart.destroy();
+  const PAD_L=52, PAD_R=16, PAD_T=16, PAD_B=40;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
 
-  priceChart = new Chart(document.getElementById('priceChart'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Fechamento', data: closeData, borderColor: '#378ADD', borderWidth: 1.5, pointRadius: 0, tension: 0.2, spanGaps: true, yAxisID: 'y' },
-        { label: 'Compra', data: buyPts, type: 'scatter', backgroundColor: '#1D9E75', pointRadius: 8, pointStyle: 'circle', yAxisID: 'y' },
-        { label: 'Venda', data: sellPts, type: 'scatter', backgroundColor: '#D85A30', pointRadius: 8, pointStyle: 'rectRot', yAxisID: 'y' },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              if (ctx.dataset.label === 'Fechamento') return `R$ ${ctx.parsed.y.toFixed(2)}`;
-              const d = allDates[ctx.dataIndex];
-              const info = porDia[d];
-              if (!info) return '';
-              const tipo = ctx.dataset.label === 'Compra' ? 'compra' : 'venda';
-              const vol = tipo === 'compra' ? info.vol_compra : info.vol_venda;
-              const qtd = tipo === 'compra' ? info.qtd_compra : info.qtd_venda;
-              return [`${ctx.dataset.label} à vista`, `Vol: R$ ${(vol / 1e3).toFixed(0)}k`, `Qtd: ${(qtd || 0).toLocaleString('pt-BR')}`];
-            }
-          }
-        }
-      },
-      scales: {
-        x: { ticks: { maxTicksLimit: 10, font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { callback: v => 'R$' + v.toFixed(2), font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.08)' } }
-      }
+  const allH = data.map(d=>d.high).filter(Boolean);
+  const allL = data.map(d=>d.low).filter(Boolean);
+  const minP = Math.min(...allL) * 0.998;
+  const maxP = Math.max(...allH) * 1.002;
+
+  const n = data.length;
+  const candleW = Math.max(2, Math.floor(plotW / n) - 1);
+  const step    = plotW / n;
+
+  function yOf(p) { return PAD_T + plotH - ((p - minP) / (maxP - minP)) * plotH; }
+  function xOf(i) { return PAD_L + i * step + step / 2; }
+
+  // Grid horizontal
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth   = 0.5;
+  const ticks = 6;
+  for (let i=0; i<=ticks; i++) {
+    const p = minP + (maxP-minP)*(i/ticks);
+    const y = yOf(p);
+    ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(W-PAD_R,y); ctx.stroke();
+    ctx.fillStyle = textColor;
+    ctx.font = '10px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText('R$'+p.toFixed(2), PAD_L-4, y+3);
+  }
+
+  // Eixo X — labels de datas (a cada ~20 candles)
+  const labelEvery = Math.max(1, Math.floor(n/10));
+  ctx.fillStyle = textColor;
+  ctx.font = '10px system-ui';
+  ctx.textAlign = 'center';
+  for (let i=0; i<n; i+=labelEvery) {
+    const d = data[i].date.slice(5);
+    ctx.fillText(d, xOf(i), H-PAD_B+14);
+  }
+
+  // Candles
+  for (let i=0; i<n; i++) {
+    const c   = data[i];
+    if (!c.open||!c.high||!c.low||!c.close) continue;
+    const x   = xOf(i);
+    const col = c.close >= c.open ? upColor : dnColor;
+
+    // Sombra (mecha)
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, yOf(c.high));
+    ctx.lineTo(x, yOf(c.low));
+    ctx.stroke();
+
+    // Corpo
+    const yO = yOf(c.open);
+    const yC = yOf(c.close);
+    const bodyY = Math.min(yO,yC);
+    const bodyH = Math.max(1, Math.abs(yO-yC));
+    ctx.fillStyle = col;
+    ctx.fillRect(x - candleW/2, bodyY, candleW, bodyH);
+  }
+
+  // Marcadores de insider
+  for (let i=0; i<n; i++) {
+    const d    = data[i].date;
+    const info = gPorDia[d];
+    if (!info) continue;
+    const x = xOf(i);
+
+    if (info.compra > 0) {
+      // Triângulo apontando para cima (compra) — abaixo da mecha inferior
+      const y = yOf(data[i].low) + 10;
+      ctx.fillStyle = buyMark;
+      ctx.beginPath();
+      ctx.moveTo(x, y-8); ctx.lineTo(x-5, y); ctx.lineTo(x+5, y);
+      ctx.closePath(); ctx.fill();
     }
-  });
+    if (info.venda > 0) {
+      // Triângulo apontando para baixo (venda) — acima da mecha superior
+      const y = yOf(data[i].high) - 10;
+      ctx.fillStyle = sellMark;
+      ctx.beginPath();
+      ctx.moveTo(x, y+8); ctx.lineTo(x-5, y); ctx.lineTo(x+5, y);
+      ctx.closePath(); ctx.fill();
+    }
+  }
 
+  // Tooltip no hover
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W / rect.width);
+    const i  = Math.floor((mx - PAD_L) / step);
+    const tt = document.getElementById('candleTooltip');
+    if (i < 0 || i >= n) { tt.style.display='none'; return; }
+    const c    = data[i];
+    const info = gPorDia[c.date] || {};
+    let html = `<strong>${c.date}</strong><br>
+      Aber: R$${c.open?.toFixed(2)}<br>
+      Max:  R$${c.high?.toFixed(2)}<br>
+      Min:  R$${c.low?.toFixed(2)}<br>
+      Fech: R$${c.close?.toFixed(2)}`;
+    if (info.compra>0) html += `<br><span style="color:${buyMark}">Compra: ${fmtQtd(info.qtd_compra)} ações · ${fmt(info.vol_compra)}</span>`;
+    if (info.venda>0)  html += `<br><span style="color:${sellMark}">Venda:  ${fmtQtd(info.qtd_venda)} ações · ${fmt(info.vol_venda)}</span>`;
+    tt.innerHTML = html;
+    tt.style.display = 'block';
+    const tx = Math.min(e.clientX - rect.left + 12, rect.width - 160);
+    const ty = Math.max(e.clientY - rect.top - 10, 0);
+    tt.style.left = tx+'px';
+    tt.style.top  = ty+'px';
+  };
+  canvas.onmouseleave = () => { document.getElementById('candleTooltip').style.display='none'; };
+}
+
+// Redesenha ao redimensionar
+window.addEventListener('resize', () => { if (gCandles.length) drawCandles(); });
+
+// ── Volume Chart (Chart.js) ──
+function renderVolChart(candles, porDia) {
+  const allDates = candles.length ? candles.map(c=>c.date) : [...new Set(Object.keys(porDia))].sort();
+  const labels   = allDates.map(d=>d.slice(5));
+  const volBuy   = allDates.map(d => porDia[d]?.vol_compra||null);
+  const volSell  = allDates.map(d => porDia[d]?.vol_venda ||null);
+
+  if (volChart) volChart.destroy();
   volChart = new Chart(document.getElementById('volChart'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Compra', data: volBuy, backgroundColor: '#1D9E75' },
-        { label: 'Venda', data: volSell, backgroundColor: '#D85A30' },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { stacked: true, ticks: { maxTicksLimit: 10, font: { size: 11 } }, grid: { display: false } },
-        y: { stacked: true, ticks: { callback: v => v >= 1e6 ? 'R$' + (v / 1e6).toFixed(1) + 'M' : 'R$' + (v / 1e3).toFixed(0) + 'k', font: { size: 11 } } }
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'Compra', data:volBuy,  backgroundColor:'#1D9E75' },
+      { label:'Venda',  data:volSell, backgroundColor:'#D85A30' },
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => {
+        const d = allDates[ctx.dataIndex];
+        const info = porDia[d]; if(!info) return '';
+        const tipo = ctx.dataset.label==='Compra'?'compra':'venda';
+        const vol  = tipo==='compra'?info.vol_compra:info.vol_venda;
+        const qtd  = tipo==='compra'?info.qtd_compra:info.qtd_venda;
+        return [`${ctx.dataset.label}`, `Vol: ${fmt(vol)}`, `Qtd: ${fmtQtd(qtd||0)} ações`];
+      }}}},
+      scales:{
+        x:{ stacked:true, ticks:{ maxTicksLimit:10, font:{size:11} }, grid:{display:false} },
+        y:{ stacked:true, ticks:{ callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':'R$'+(v/1e3).toFixed(0)+'k', font:{size:11} } }
       }
     }
   });
@@ -318,8 +432,7 @@ function renderCharts(movData, precos) {
 
 function setStatus(msg) {
   const el = document.getElementById('statusMsg');
-  el.textContent = msg;
-  el.style.display = 'block';
+  el.textContent = msg; el.style.display='block';
 }
 </script>
 </body>
