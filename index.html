@@ -10,64 +10,68 @@
       --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeede8;
       --text: #1a1a18; --text2: #6b6b67; --border: rgba(0,0,0,0.12);
       --buy: #1D9E75; --sell: #D85A30; --line: #378ADD; --radius: 10px;
-      --candle-up: #1D9E75; --candle-dn: #D85A30;
+      --candle-up: #ffffff; --candle-dn: #222220;
+      --candle-up-stroke: #aaaaaa; --candle-dn-stroke: #aaaaaa;
     }
     @media (prefers-color-scheme: dark) {
-      :root { --bg:#1c1c1a; --bg2:#242422; --bg3:#2e2e2b; --text:#e8e6de; --text2:#9c9a92; --border:rgba(255,255,255,0.1); }
+      :root {
+        --bg:#1c1c1a; --bg2:#242422; --bg3:#2e2e2b;
+        --text:#e8e6de; --text2:#9c9a92; --border:rgba(255,255,255,0.1);
+        --candle-up: #e8e6de; --candle-dn: #111110;
+        --candle-up-stroke: #777; --candle-dn-stroke: #777;
+      }
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size:15px; background:var(--bg); color:var(--text); min-height:100vh; }
     header { border-bottom:0.5px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:12px; }
-    header h1 { font-size:17px; font-weight:500; }
-    header span { font-size:12px; color:var(--text2); background:var(--bg2); padding:3px 8px; border-radius:20px; }
+    header h1 { font-size:18px; font-weight:500; }
+    header span { font-size:13px; color:var(--text2); background:var(--bg2); padding:3px 9px; border-radius:20px; }
     main { max-width:1000px; margin:0 auto; padding:1.5rem; }
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.5rem; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; flex-wrap:wrap; }
-    .search-row input, .search-row select { flex:1; min-width:160px; height:38px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; padding:0 12px; outline:none; }
+    .search-row input, .search-row select { flex:1; min-width:160px; height:40px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; padding:0 12px; outline:none; }
     .search-row input:focus, .search-row select:focus { border-color:var(--line); }
-    .search-row button { height:38px; padding:0 18px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; cursor:pointer; }
+    .search-row button { height:40px; padding:0 20px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; cursor:pointer; }
     .search-row button:hover { background:var(--bg3); }
     .sug-box { background:var(--bg); border:0.5px solid var(--border); border-radius:8px; margin-top:6px; display:none; max-height:200px; overflow-y:auto; }
-    .sug-item { padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:0.5px solid var(--border); color:var(--text); }
+    .sug-item { padding:10px 13px; cursor:pointer; font-size:14px; border-bottom:0.5px solid var(--border); color:var(--text); }
     .sug-item:hover { background:var(--bg2); }
     .sug-item:last-child { border-bottom:none; }
     .sug-item strong { color:var(--line); }
-    .status { text-align:center; padding:2.5rem; font-size:14px; color:var(--text2); }
+    .status { text-align:center; padding:2.5rem; font-size:15px; color:var(--text2); }
 
     .metrics-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
     .metrics-bottom { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.5rem; }
     .metric { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
-    .metric .lbl { font-size:12px; color:var(--text2); margin-bottom:5px; }
+    .metric .lbl { font-size:13px; color:var(--text2); margin-bottom:5px; }
     .metric .val { font-size:22px; font-weight:500; }
-    .metric .val.sm { font-size:14px; }
+    .metric .val.sm { font-size:15px; }
 
     .op-card { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
     .op-card.buy-card { border-left:3px solid var(--buy); }
     .op-card.sell-card { border-left:3px solid var(--sell); }
     .op-header { margin-bottom:12px; }
-    .badge { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; }
+    .badge { font-size:12px; font-weight:500; padding:3px 9px; border-radius:20px; }
     .badge.buy { background:rgba(29,158,117,0.12); color:var(--buy); }
     .badge.sell { background:rgba(216,90,48,0.12); color:var(--sell); }
-    .op-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .op-item .lbl { font-size:11px; color:var(--text2); margin-bottom:3px; }
-    .op-item .val { font-size:18px; font-weight:500; }
+    .op-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .op-item .lbl { font-size:12px; color:var(--text2); margin-bottom:3px; }
+    .op-item .val { font-size:20px; font-weight:500; }
     .op-item .val.buy { color:var(--buy); }
     .op-item .val.sell { color:var(--sell); }
-    .op-item .val.sm { font-size:13px; color:var(--text); }
+    .op-item .val.sm { font-size:14px; color:var(--text); }
 
     .chart-section { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; border:0.5px solid var(--border); }
-    .sec-lbl { font-size:13px; font-weight:500; color:var(--text2); margin-bottom:10px; }
-    .legend { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:12px; font-size:12px; color:var(--text2); }
+    .sec-lbl { font-size:14px; font-weight:500; color:var(--text2); margin-bottom:10px; }
+    .legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:12px; font-size:13px; color:var(--text2); }
     .legend span { display:flex; align-items:center; gap:6px; }
-    .dot { display:inline-block; width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+    .dot { display:inline-block; width:11px; height:11px; border-radius:2px; flex-shrink:0; }
 
-    /* Canvas candle */
     #candleCanvas { width:100%; display:block; cursor:crosshair; }
-    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:1.8; }
+    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:9px 13px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:2; }
     .candle-wrap { position:relative; }
-
-    .chart-wrap2 { position:relative; width:100%; height:140px; }
-    footer { text-align:center; padding:2rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
+    .chart-wrap2 { position:relative; width:100%; height:150px; }
+    footer { text-align:center; padding:2rem; font-size:13px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
   </style>
 </head>
 <body>
@@ -96,7 +100,7 @@
   <div id="metricsTop" class="metrics-top" style="display:none">
     <div class="metric"><div class="lbl">Empresa</div><div class="val sm" id="mEmpresa">—</div></div>
     <div class="metric"><div class="lbl">Ticker B3</div><div class="val sm" id="mTicker">—</div></div>
-    <div class="metric"><div class="lbl">Operações</div><div class="val sm" id="mTotal">—</div></div>
+    <div class="metric"><div class="lbl">Totais</div><div class="val sm" id="mTotal">—</div></div>
     <div class="metric"><div class="lbl">Volume total</div><div class="val sm" id="mVolume">—</div></div>
   </div>
 
@@ -105,7 +109,7 @@
       <div class="op-header"><span class="badge buy">Compra à vista</span></div>
       <div class="op-grid">
         <div class="op-item"><div class="lbl">Operações</div><div class="val buy" id="mCompras">0</div></div>
-        <div class="op-item"><div class="lbl">Qtde de ações</div><div class="val sm" id="mQtdCompra">—</div></div>
+        <div class="op-item"><div class="lbl">Quantidade</div><div class="val sm" id="mQtdCompra">—</div></div>
         <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolCompra">—</div></div>
         <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmCompra">—</div></div>
       </div>
@@ -114,7 +118,7 @@
       <div class="op-header"><span class="badge sell">Venda à vista</span></div>
       <div class="op-grid">
         <div class="op-item"><div class="lbl">Operações</div><div class="val sell" id="mVendas">0</div></div>
-        <div class="op-item"><div class="lbl">Qtde de ações</div><div class="val sm" id="mQtdVenda">—</div></div>
+        <div class="op-item"><div class="lbl">Quantidade</div><div class="val sm" id="mQtdVenda">—</div></div>
         <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolVenda">—</div></div>
         <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmVenda">—</div></div>
       </div>
@@ -125,10 +129,10 @@
     <div class="chart-section">
       <div class="sec-lbl">Candlestick diário + movimentações de insiders (desde 01/01/2026)</div>
       <div class="legend">
-        <span><span class="dot" style="background:var(--candle-up)"></span>Alta (fechamento > abertura)</span>
-        <span><span class="dot" style="background:var(--candle-dn)"></span>Baixa (fechamento < abertura)</span>
-        <span><span class="dot" style="background:var(--buy);border-radius:50%"></span>Compra insider</span>
-        <span><span class="dot" style="background:var(--sell);transform:rotate(45deg)"></span>Venda insider</span>
+        <span><span class="dot" style="background:#e8e6de;border:1px solid #aaa"></span>Alta (fecha > abre)</span>
+        <span><span class="dot" style="background:#111110;border:1px solid #aaa"></span>Baixa (fecha < abre)</span>
+        <span><span class="dot" style="background:#1D9E75;border-radius:50%"></span>Compra insider</span>
+        <span><span class="dot" style="background:#D85A30;border-radius:50%"></span>Venda insider</span>
       </div>
       <div class="candle-wrap">
         <canvas id="candleCanvas"></canvas>
@@ -152,14 +156,13 @@ const FN = `${SUPA_URL}/functions/v1`;
 let volChart = null, debTimer = null;
 let gCandles = [], gPorDia = {};
 
-// ── Autocomplete ──
-document.getElementById('cvmInput').addEventListener('input', function () {
+document.getElementById('cvmInput').addEventListener('input', function() {
   clearTimeout(debTimer);
   const v = this.value.trim();
   if (v.length < 2) { hideSug(); return; }
   debTimer = setTimeout(() => searchCVM(v), 350);
 });
-document.getElementById('cvmInput').addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
+document.getElementById('cvmInput').addEventListener('keydown', e => { if (e.key==='Enter') buscar(); });
 
 async function searchCVM(q) {
   const isNum = /^\d+$/.test(q);
@@ -167,11 +170,11 @@ async function searchCVM(q) {
     ? `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&codigo_cvm=eq.${q}&limit=1`
     : `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&nome_companhia=ilike.*${encodeURIComponent(q)}*&limit=8`;
   try {
-    const r = await fetch(url, { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } });
+    const r = await fetch(url, { headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}` } });
     const data = await r.json();
     const seen = new Set();
-    showSug(data.filter(d => { if (seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; }));
-  } catch (e) {}
+    showSug(data.filter(d => { if(seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; }));
+  } catch(e) {}
 }
 function showSug(items) {
   const box = document.getElementById('sugBox');
@@ -179,12 +182,11 @@ function showSug(items) {
   box.innerHTML = items.map(d =>
     `<div class="sug-item" onclick="selectCVM('${d.codigo_cvm}')"><strong>${d.codigo_cvm}</strong> — ${d.nome_companhia}</div>`
   ).join('');
-  box.style.display='block';
+  box.style.display = 'block';
 }
 function hideSug() { document.getElementById('sugBox').style.display='none'; }
 function selectCVM(cvm) { document.getElementById('cvmInput').value=cvm; hideSug(); buscar(); }
 
-// ── Formatação ──
 function fmt(v) {
   if (v >= 1e6) return 'R$ '+(v/1e6).toFixed(1)+'M';
   if (v >= 1e3) return 'R$ '+(v/1e3).toFixed(0)+'k';
@@ -192,7 +194,6 @@ function fmt(v) {
 }
 function fmtQtd(v) { return Number(v).toLocaleString('pt-BR'); }
 
-// ── Busca principal ──
 async function buscar() {
   const cvm   = document.getElementById('cvmInput').value.trim();
   const grupo = document.getElementById('grupoSelect').value;
@@ -207,7 +208,10 @@ async function buscar() {
     const movData = await (await fetch(movUrl)).json();
 
     if (movData.error) { setStatus(`Erro: ${movData.error}`); return; }
-    if (!movData.total_movimentacoes) { setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo?` (${grupo})`:''} a partir de 01/01/2026.`); return; }
+    if (!movData.total_movimentacoes) {
+      setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo?` (${grupo})`:''} a partir de 01/01/2026.`);
+      return;
+    }
 
     const ticker = movData.ticker_yahoo;
     setStatus(`Carregando cotação ${ticker||'(sem ticker)'}...`);
@@ -230,10 +234,9 @@ async function buscar() {
   } catch(e) { setStatus('Erro: '+e.message); }
 }
 
-// ── Métricas ──
 function renderMetrics(d) {
   const t = d.totais || {};
-  let qtdC=0, volC=0, qtdV=0, volV=0;
+  let qtdC=0,volC=0,qtdV=0,volV=0;
   for (const dia of Object.values(d.por_dia||{})) {
     qtdC += dia.qtd_compra||0; volC += dia.vol_compra||0;
     qtdV += dia.qtd_venda ||0; volV += dia.vol_venda ||0;
@@ -243,14 +246,14 @@ function renderMetrics(d) {
 
   document.getElementById('mEmpresa').textContent   = (d.empresa||'—').slice(0,30);
   document.getElementById('mTicker').textContent    = d.ticker_b3||'—';
-  document.getElementById('mTotal').textContent     = ((t.compra||0)+(t.venda||0))+' ops';
+  document.getElementById('mTotal').textContent     = ((t.compra||0)+(t.venda||0))+' operações';
   document.getElementById('mVolume').textContent    = fmt(t.vol_total||0);
   document.getElementById('mCompras').textContent   = t.compra||0;
-  document.getElementById('mQtdCompra').textContent = fmtQtd(qtdC)+' ações';
+  document.getElementById('mQtdCompra').textContent = fmtQtd(qtdC);
   document.getElementById('mVolCompra').textContent = fmt(volC);
   document.getElementById('mPmCompra').textContent  = pmC>0?'R$ '+pmC.toFixed(2):'—';
   document.getElementById('mVendas').textContent    = t.venda||0;
-  document.getElementById('mQtdVenda').textContent  = fmtQtd(qtdV)+' ações';
+  document.getElementById('mQtdVenda').textContent  = fmtQtd(qtdV);
   document.getElementById('mVolVenda').textContent  = fmt(volV);
   document.getElementById('mPmVenda').textContent   = pmV>0?'R$ '+pmV.toFixed(2):'—';
 
@@ -259,28 +262,33 @@ function renderMetrics(d) {
   document.getElementById('chartArea').style.display     = 'block';
 }
 
-// ── Candlestick Chart (canvas 2D) ──
 function drawCandles() {
   const canvas = document.getElementById('candleCanvas');
   const wrap   = canvas.parentElement;
   const W = wrap.clientWidth || 900;
-  const H = 340;
+  const H = 360;
   canvas.width  = W;
   canvas.height = H;
 
   const ctx = canvas.getContext('2d');
   const isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-  const textColor  = isDark ? '#9c9a92' : '#6b6b67';
-  const gridColor  = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-  const upColor    = '#1D9E75';
-  const dnColor    = '#D85A30';
-  const buyMark    = '#1D9E75';
-  const sellMark   = '#D85A30';
+  const textColor = isDark ? '#9c9a92' : '#6b6b67';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const wickColor = isDark ? '#666' : '#999';
+
+  // Candle: branco (alta) / preto (baixa)
+  const upFill   = isDark ? '#e8e6de' : '#ffffff';
+  const upStroke = isDark ? '#888'    : '#888';
+  const dnFill   = isDark ? '#111110' : '#1a1a18';
+  const dnStroke = isDark ? '#888'    : '#666';
+
+  const buyColor  = '#1D9E75';
+  const sellColor = '#D85A30';
 
   const data = gCandles;
   if (!data.length) return;
 
-  const PAD_L=52, PAD_R=16, PAD_T=16, PAD_B=40;
+  const PAD_L=56, PAD_R=16, PAD_T=20, PAD_B=44;
   const plotW = W - PAD_L - PAD_R;
   const plotH = H - PAD_T - PAD_B;
 
@@ -289,14 +297,14 @@ function drawCandles() {
   const minP = Math.min(...allL) * 0.998;
   const maxP = Math.max(...allH) * 1.002;
 
-  const n = data.length;
-  const candleW = Math.max(2, Math.floor(plotW / n) - 1);
+  const n       = data.length;
   const step    = plotW / n;
+  const candleW = Math.max(3, step * 0.65);
 
-  function yOf(p) { return PAD_T + plotH - ((p - minP) / (maxP - minP)) * plotH; }
-  function xOf(i) { return PAD_L + i * step + step / 2; }
+  function yOf(p) { return PAD_T + plotH - ((p-minP)/(maxP-minP))*plotH; }
+  function xOf(i) { return PAD_L + i*step + step/2; }
 
-  // Grid horizontal
+  // Grid
   ctx.strokeStyle = gridColor;
   ctx.lineWidth   = 0.5;
   const ticks = 6;
@@ -304,31 +312,30 @@ function drawCandles() {
     const p = minP + (maxP-minP)*(i/ticks);
     const y = yOf(p);
     ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(W-PAD_R,y); ctx.stroke();
-    ctx.fillStyle = textColor;
-    ctx.font = '10px system-ui';
-    ctx.textAlign = 'right';
-    ctx.fillText('R$'+p.toFixed(2), PAD_L-4, y+3);
+    ctx.fillStyle  = textColor;
+    ctx.font       = '11px system-ui';
+    ctx.textAlign  = 'right';
+    ctx.fillText('R$'+p.toFixed(2), PAD_L-5, y+4);
   }
 
-  // Eixo X — labels de datas (a cada ~20 candles)
+  // Labels eixo X
   const labelEvery = Math.max(1, Math.floor(n/10));
-  ctx.fillStyle = textColor;
-  ctx.font = '10px system-ui';
-  ctx.textAlign = 'center';
+  ctx.fillStyle  = textColor;
+  ctx.font       = '11px system-ui';
+  ctx.textAlign  = 'center';
   for (let i=0; i<n; i+=labelEvery) {
-    const d = data[i].date.slice(5);
-    ctx.fillText(d, xOf(i), H-PAD_B+14);
+    ctx.fillText(data[i].date.slice(5), xOf(i), H-PAD_B+16);
   }
 
   // Candles
   for (let i=0; i<n; i++) {
-    const c   = data[i];
+    const c = data[i];
     if (!c.open||!c.high||!c.low||!c.close) continue;
-    const x   = xOf(i);
-    const col = c.close >= c.open ? upColor : dnColor;
+    const x    = xOf(i);
+    const isUp = c.close >= c.open;
 
-    // Sombra (mecha)
-    ctx.strokeStyle = col;
+    // Mecha
+    ctx.strokeStyle = wickColor;
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(x, yOf(c.high));
@@ -336,15 +343,20 @@ function drawCandles() {
     ctx.stroke();
 
     // Corpo
-    const yO = yOf(c.open);
-    const yC = yOf(c.close);
+    const yO    = yOf(c.open);
+    const yC    = yOf(c.close);
     const bodyY = Math.min(yO,yC);
-    const bodyH = Math.max(1, Math.abs(yO-yC));
-    ctx.fillStyle = col;
+    const bodyH = Math.max(1.5, Math.abs(yO-yC));
+
+    ctx.fillStyle   = isUp ? upFill   : dnFill;
+    ctx.strokeStyle = isUp ? upStroke : dnStroke;
+    ctx.lineWidth   = 1;
     ctx.fillRect(x - candleW/2, bodyY, candleW, bodyH);
+    ctx.strokeRect(x - candleW/2, bodyY, candleW, bodyH);
   }
 
-  // Marcadores de insider
+  // Marcadores de insider — setas maiores
+  const arrowSize = 10;
   for (let i=0; i<n; i++) {
     const d    = data[i].date;
     const info = gPorDia[d];
@@ -352,24 +364,40 @@ function drawCandles() {
     const x = xOf(i);
 
     if (info.compra > 0) {
-      // Triângulo apontando para cima (compra) — abaixo da mecha inferior
-      const y = yOf(data[i].low) + 10;
-      ctx.fillStyle = buyMark;
+      // Seta para cima (compra) — abaixo da mecha inferior
+      const tipY  = yOf(data[i].low) + arrowSize + 6;
+      const baseY = tipY + arrowSize * 1.6;
+      ctx.fillStyle = buyColor;
       ctx.beginPath();
-      ctx.moveTo(x, y-8); ctx.lineTo(x-5, y); ctx.lineTo(x+5, y);
-      ctx.closePath(); ctx.fill();
+      ctx.moveTo(x, tipY);
+      ctx.lineTo(x - arrowSize, baseY);
+      ctx.lineTo(x - arrowSize*0.35, baseY);
+      ctx.lineTo(x - arrowSize*0.35, baseY + arrowSize*0.9);
+      ctx.lineTo(x + arrowSize*0.35, baseY + arrowSize*0.9);
+      ctx.lineTo(x + arrowSize*0.35, baseY);
+      ctx.lineTo(x + arrowSize, baseY);
+      ctx.closePath();
+      ctx.fill();
     }
     if (info.venda > 0) {
-      // Triângulo apontando para baixo (venda) — acima da mecha superior
-      const y = yOf(data[i].high) - 10;
-      ctx.fillStyle = sellMark;
+      // Seta para baixo (venda) — acima da mecha superior
+      const tipY  = yOf(data[i].high) - arrowSize - 6;
+      const baseY = tipY - arrowSize * 1.6;
+      ctx.fillStyle = sellColor;
       ctx.beginPath();
-      ctx.moveTo(x, y+8); ctx.lineTo(x-5, y); ctx.lineTo(x+5, y);
-      ctx.closePath(); ctx.fill();
+      ctx.moveTo(x, tipY);
+      ctx.lineTo(x - arrowSize, baseY);
+      ctx.lineTo(x - arrowSize*0.35, baseY);
+      ctx.lineTo(x - arrowSize*0.35, baseY - arrowSize*0.9);
+      ctx.lineTo(x + arrowSize*0.35, baseY - arrowSize*0.9);
+      ctx.lineTo(x + arrowSize*0.35, baseY);
+      ctx.lineTo(x + arrowSize, baseY);
+      ctx.closePath();
+      ctx.fill();
     }
   }
 
-  // Tooltip no hover
+  // Tooltip
   canvas.onmousemove = (e) => {
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left) * (W / rect.width);
@@ -379,15 +407,15 @@ function drawCandles() {
     const c    = data[i];
     const info = gPorDia[c.date] || {};
     let html = `<strong>${c.date}</strong><br>
-      Aber: R$${c.open?.toFixed(2)}<br>
-      Max:  R$${c.high?.toFixed(2)}<br>
-      Min:  R$${c.low?.toFixed(2)}<br>
-      Fech: R$${c.close?.toFixed(2)}`;
-    if (info.compra>0) html += `<br><span style="color:${buyMark}">Compra: ${fmtQtd(info.qtd_compra)} ações · ${fmt(info.vol_compra)}</span>`;
-    if (info.venda>0)  html += `<br><span style="color:${sellMark}">Venda:  ${fmtQtd(info.qtd_venda)} ações · ${fmt(info.vol_venda)}</span>`;
+      Abertura: R$${c.open?.toFixed(2)}<br>
+      Máxima:&nbsp;&nbsp;R$${c.high?.toFixed(2)}<br>
+      Mínima:&nbsp;&nbsp;&nbsp;R$${c.low?.toFixed(2)}<br>
+      Fechamento: R$${c.close?.toFixed(2)}`;
+    if (info.compra>0) html += `<br><span style="color:#1D9E75">▲ Compra: ${fmtQtd(info.qtd_compra)} · ${fmt(info.vol_compra)}</span>`;
+    if (info.venda>0)  html += `<br><span style="color:#D85A30">▼ Venda: ${fmtQtd(info.qtd_venda)} · ${fmt(info.vol_venda)}</span>`;
     tt.innerHTML = html;
     tt.style.display = 'block';
-    const tx = Math.min(e.clientX - rect.left + 12, rect.width - 160);
+    const tx = Math.min(e.clientX - rect.left + 14, rect.width - 185);
     const ty = Math.max(e.clientY - rect.top - 10, 0);
     tt.style.left = tx+'px';
     tt.style.top  = ty+'px';
@@ -395,10 +423,8 @@ function drawCandles() {
   canvas.onmouseleave = () => { document.getElementById('candleTooltip').style.display='none'; };
 }
 
-// Redesenha ao redimensionar
 window.addEventListener('resize', () => { if (gCandles.length) drawCandles(); });
 
-// ── Volume Chart (Chart.js) ──
 function renderVolChart(candles, porDia) {
   const allDates = candles.length ? candles.map(c=>c.date) : [...new Set(Object.keys(porDia))].sort();
   const labels   = allDates.map(d=>d.slice(5));
@@ -415,16 +441,16 @@ function renderVolChart(candles, porDia) {
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => {
-        const d = allDates[ctx.dataIndex];
+        const d    = allDates[ctx.dataIndex];
         const info = porDia[d]; if(!info) return '';
         const tipo = ctx.dataset.label==='Compra'?'compra':'venda';
         const vol  = tipo==='compra'?info.vol_compra:info.vol_venda;
         const qtd  = tipo==='compra'?info.qtd_compra:info.qtd_venda;
-        return [`${ctx.dataset.label}`, `Vol: ${fmt(vol)}`, `Qtd: ${fmtQtd(qtd||0)} ações`];
+        return [`${ctx.dataset.label}`, `Vol: ${fmt(vol)}`, `Qtd: ${fmtQtd(qtd||0)}`];
       }}}},
       scales:{
-        x:{ stacked:true, ticks:{ maxTicksLimit:10, font:{size:11} }, grid:{display:false} },
-        y:{ stacked:true, ticks:{ callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':'R$'+(v/1e3).toFixed(0)+'k', font:{size:11} } }
+        x:{ stacked:true, ticks:{ maxTicksLimit:10, font:{size:12} }, grid:{display:false} },
+        y:{ stacked:true, ticks:{ callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':'R$'+(v/1e3).toFixed(0)+'k', font:{size:12} } }
       }
     }
   });
@@ -432,7 +458,7 @@ function renderVolChart(candles, porDia) {
 
 function setStatus(msg) {
   const el = document.getElementById('statusMsg');
-  el.textContent = msg; el.style.display='block';
+  el.textContent=msg; el.style.display='block';
 }
 </script>
 </body>
