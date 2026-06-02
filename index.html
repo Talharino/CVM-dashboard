@@ -477,7 +477,6 @@ function reordenarTabela(){
 async function toggleExpandir(ticker, cvm, rowEl){
   const expRow=document.getElementById(`exp-${ticker}`);
   if(!expRow) return;
-  const isOpen=expRow.style.display!=='none';
 
   // fecha qualquer aberto
   if(gTickerExpandido){
@@ -491,51 +490,42 @@ async function toggleExpandir(ticker, cvm, rowEl){
   rowEl.classList.add('ativo');
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
+  expRow.scrollIntoView({behavior:'smooth',block:'nearest'});
 
+  // Se já tem dados carregados, desenha direto
+  if(rowEl._candles!==null && rowEl._movData && rowEl._movData.por_dia){
+    drawInlineChart(ticker, rowEl._candles||[], rowEl._movData.por_dia||{});
+    return;
+  }
+
+  // Mostra loading sem destruir os canvas
   const cc=document.getElementById(`ic-${ticker}`);
   const vc=document.getElementById(`iv-${ticker}`);
-  if(!cc||!vc) return;
+  if(cc){ const ctx=cc.getContext('2d'); ctx.clearRect(0,0,cc.width,cc.height); cc.width=cc.parentElement.clientWidth-20||800; cc.height=240; ctx.fillStyle='var(--text2)'; ctx.font='14px system-ui'; ctx.textAlign='center'; ctx.fillText('Carregando...', cc.width/2, cc.height/2); }
 
-  // usa dados já carregados se existirem; cotacao carrega sob demanda
-  let mov=rowEl._movData, candles=rowEl._candles;
+  try {
+    // Busca movimentacoes completo e cotacao em paralelo
+    const tickerYahoo = rowEl._movData?.ticker_yahoo || rowEl._viewData?.ticker_yahoo || '';
+    const [movFull, cotRes] = await Promise.all([
+      fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`).then(r=>r.json()).catch(()=>null),
+      tickerYahoo ? fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})) : Promise.resolve({candles:[]})
+    ]);
 
-  if(candles===null && mov){
-    const chartDiv=document.getElementById(`ic-${ticker}`);
-    if(chartDiv) chartDiv.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando...</div>';
-    try {
-      // Busca movimentacoes completo (com por_dia) e cotacao em paralelo
-      const [movFull, cotRes] = await Promise.all([
-        fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`).then(r=>r.json()).catch(()=>null),
-        mov.ticker_yahoo ? fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})) : Promise.resolve({candles:[]})
-      ]);
-      if(movFull && !movFull.error) {
-        rowEl._movData = movFull;
-        mov = movFull;
-      }
-      candles = cotRes.candles || [];
-      rowEl._candles = candles;
-      // Atualiza colunas com % reais
-      while(rowEl.children.length>1) rowEl.removeChild(rowEl.lastChild);
-      if(rowEl._viewData){
-        rowEl.insertAdjacentHTML('beforeend', buildColsFromView(rowEl._viewData, candles));
-      } else {
-        rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
-      }
-    } catch(e){ candles=[]; rowEl._candles=[]; }
-  }
+    const mov = (movFull && !movFull.error) ? movFull : rowEl._movData;
+    const candles = cotRes.candles || [];
+    rowEl._movData = mov;
+    rowEl._candles = candles;
 
-  if(!mov){
-    cc.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando...</div>';
-    try {
-      mov=await (await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`)).json();
-      candles=[];
-      if(mov.ticker_yahoo){ try{const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`)).json();if(c.candles)candles=c.candles;}catch(e){} }
-      rowEl._movData=mov; rowEl._candles=candles;
-    } catch(e){ return; }
-  }
+    // Atualiza colunas com % reais
+    while(rowEl.children.length>1) rowEl.removeChild(rowEl.lastChild);
+    if(rowEl._viewData){
+      rowEl.insertAdjacentHTML('beforeend', buildColsFromView(rowEl._viewData, candles));
+    } else {
+      rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
+    }
 
-  drawInlineChart(ticker, candles, mov.por_dia||{});
-  expRow.scrollIntoView({behavior:'smooth',block:'nearest'});
+    drawInlineChart(ticker, candles, mov?.por_dia||{});
+  } catch(e){ console.error('toggleExpandir erro:',e); }
 }
 
 function drawInlineChart(ticker, data, porDia){
