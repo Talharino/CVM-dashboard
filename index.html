@@ -374,7 +374,7 @@ async function carregarTabelaView(tickers, setor){
         ticker_yahoo:d.ticker_yahoo
       };
       // Injeta dados agregados diretamente
-      row.insertAdjacentHTML('beforeend', buildColsFromView(d));
+      row.insertAdjacentHTML('beforeend', buildColsFromView(d, null));
       row._movData=mov; row._candles=null; row._viewData=d;
       row._totalOps=(d.total_compras||0)+(d.total_vendas||0);
     });
@@ -382,28 +382,40 @@ async function carregarTabelaView(tickers, setor){
   } catch(e){ console.error('Erro carregarTabelaView:',e); }
 }
 
-function buildColsFromView(d){
+function buildColsFromView(d, candles){
   const dash='<span class="v-dash">—</span>';
   const hC=(d.total_compras||0)>0, hV=(d.total_vendas||0)>0;
   const pmC=hC&&d.preco_medio_compra?'R$'+parseFloat(d.preco_medio_compra).toFixed(2):dash;
   const pmV=hV&&d.preco_medio_venda?'R$'+parseFloat(d.preco_medio_venda).toFixed(2):dash;
-  const volC=hC?fmt(parseFloat(d.vol_compra)||0):dash;
-  const volV=hV?fmt(parseFloat(d.vol_venda)||0):dash;
-  const qtdC=hC?fmtQtd(parseInt(d.qtd_compra)||0):dash;
-  const qtdV=hV?fmtQtd(parseInt(d.qtd_venda)||0):dash;
+  const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
+  const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
+  const volC=hC?fmt(vC):dash;
+  const volV=hV?fmt(vV):dash;
+  const qtdC=hC?fmtQtd(qC):dash;
+  const qtdV=hV?fmtQtd(qV):dash;
+  // calcular % se tiver candles
+  let pCtdC=dash,pVolC=dash,pCtdV=dash,pVolV=dash;
+  if(candles&&candles.length){
+    const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
+    const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
+    if(tQ>0&&qC>0) pCtdC=`<span class="v-pctb">${((qC/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
+    if(tV>0&&vC>0) pVolC=`<span class="v-pctb">${((vC/tV)*100).toFixed(2).replace('.',',')}%</span>`;
+    if(tQ>0&&qV>0) pCtdV=`<span class="v-pcts">${((qV/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
+    if(tV>0&&vV>0) pVolV=`<span class="v-pcts">${((vV/tV)*100).toFixed(2).replace('.',',')}%</span>`;
+  }
   return `
     <td class="td-b">${hC?`<span class="v-buy">${d.total_compras}</span>`:dash}</td>
     <td class="td-b">${qtdC}</td>
     <td class="td-b">${volC}</td>
     <td class="td-b">${pmC}</td>
-    <td class="td-b"><span class="v-dash">—</span></td>
-    <td class="td-b td-sep"><span class="v-dash">—</span></td>
+    <td class="td-b">${pCtdC}</td>
+    <td class="td-b td-sep">${pVolC}</td>
     <td class="td-s">${hV?`<span class="v-sell">${d.total_vendas}</span>`:dash}</td>
     <td class="td-s">${qtdV}</td>
     <td class="td-s">${volV}</td>
     <td class="td-s">${pmV}</td>
-    <td class="td-s"><span class="v-dash">—</span></td>
-    <td class="td-s"><span class="v-dash">—</span></td>`;
+    <td class="td-s">${pCtdV}</td>
+    <td class="td-s">${pVolV}</td>`;
 }
 
 async function carregarLinhaTabela(t){ await carregarTabelaView([t],''); }
@@ -488,18 +500,27 @@ async function toggleExpandir(ticker, cvm, rowEl){
   let mov=rowEl._movData, candles=rowEl._candles;
 
   if(candles===null && mov){
-    // cotacao ainda não carregada — carrega agora
     const chartDiv=document.getElementById(`ic-${ticker}`);
-    if(chartDiv) chartDiv.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando cotação...</div>';
+    if(chartDiv) chartDiv.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando...</div>';
     try {
-      if(mov.ticker_yahoo){
-        const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`)).json();
-        candles=c.candles||[];
-      } else { candles=[]; }
-      rowEl._candles=candles;
-      // Atualiza colunas % com candles reais
+      // Busca movimentacoes completo (com por_dia) e cotacao em paralelo
+      const [movFull, cotRes] = await Promise.all([
+        fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`).then(r=>r.json()).catch(()=>null),
+        mov.ticker_yahoo ? fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})) : Promise.resolve({candles:[]})
+      ]);
+      if(movFull && !movFull.error) {
+        rowEl._movData = movFull;
+        mov = movFull;
+      }
+      candles = cotRes.candles || [];
+      rowEl._candles = candles;
+      // Atualiza colunas com % reais
       while(rowEl.children.length>1) rowEl.removeChild(rowEl.lastChild);
-      rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
+      if(rowEl._viewData){
+        rowEl.insertAdjacentHTML('beforeend', buildColsFromView(rowEl._viewData, candles));
+      } else {
+        rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
+      }
     } catch(e){ candles=[]; rowEl._candles=[]; }
   }
 
