@@ -107,12 +107,12 @@
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
     /* MENU BAR */
-    .menubar { display:flex; align-items:center; gap:0; border-bottom:0.5px solid var(--border); background:var(--bg); overflow-x:auto; scrollbar-width:none; position:sticky; top:53px; z-index:99; }
+    .menubar { display:flex; align-items:center; justify-content:center; gap:0; border-bottom:0.5px solid var(--border); background:var(--bg); overflow-x:auto; scrollbar-width:none; position:sticky; top:53px; z-index:99; }
     .menubar::-webkit-scrollbar { display:none; }
     .menu-item { padding:11px 16px; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; flex-shrink:0; }
     .menu-item:hover { color:var(--text); }
     .menu-item.on { color:var(--line); border-bottom-color:var(--line); }
-    .active-label { font-size:12px; color:var(--text2); padding:7px 16px; border-bottom:0.5px solid var(--border); background:var(--bg2); display:none; }
+    .active-label { font-size:12px; color:var(--text2); padding:7px 16px; border-bottom:0.5px solid var(--border); background:var(--bg2); display:none; text-align:center; }
     .active-label span { color:var(--line); font-weight:500; }
 
     footer { text-align:center; padding:1.5rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:1rem; }
@@ -207,13 +207,22 @@ const HDR={apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`};
 let gCandles=[], gPorDia={}, gPorDiaGrupo={};
 let gTickerExpandido=null;
 
+const TOP30 = [{"codigo_cvm": "19305", "ticker_b3": "BIOM3", "nome_companhia": "BIOMM SA", "setor": "Sa\u00fade", "segmento": "Medicamentos e Outros Produtos", "ops": 135}, {"codigo_cvm": "701", "ticker_b3": "BIED3", "nome_companhia": "BIOMA EDUCA\u00c7\u00c3O S.A.", "setor": "Consumo C\u00edclico", "segmento": "Servi\u00e7os Educacionais", "ops": 84}, {"codigo_cvm": "6041", "ticker_b3": "BGIP4", "nome_companhia": "INVESTIMENTOS BEMGE S.A.", "setor": "Financeiro", "segmento": "Bancos", "ops": 84}, {"codigo_cvm": "18309", "ticker_b3": "EQPA3", "nome_companhia": "EQUATORIAL PAR\u00c1 DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 72}, {"codigo_cvm": "20648", "ticker_b3": "CEEB3", "nome_companhia": "CIA ESTADUAL DE DISTRIBUI\u00c7\u00c3O DE ENERGIA ELETRICA", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 70}, {"codigo_cvm": "26026", "ticker_b3": "DESK3", "nome_companhia": "DESKTOP S.A", "setor": "Tecnologia da Informa\u00e7\u00e3o", "segmento": "Programas e Servi\u00e7os", "ops": 61}, {"codigo_cvm": "2437", "ticker_b3": "ELET3", "nome_companhia": "CENTRAIS ELETRICAS BRASILEIRAS SA", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 60}, {"codigo_cvm": "22608", "ticker_b3": "PGMN3", "nome_companhia": "EMPREENDIMENTOS PAGUE MENOS SA", "setor": "Financeiro", "segmento": "Servi\u00e7os Financeiros Diversos", "ops": 58}, {"codigo_cvm": "24236", "ticker_b3": "PRNR3", "nome_companhia": "PRINER SERVI\u00c7OS INDUSTRIAIS S.A.", "setor": "Consumo C\u00edclico", "segmento": "Incorpora\u00e7\u00f5es", "ops": 55}, {"codigo_cvm": "23264", "ticker_b3": "ABEV3", "nome_companhia": "AMBEV S.A.", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Cervejas e Refrigerantes", "ops": 53}, {"codigo_cvm": "25577", "ticker_b3": "EQGO3", "nome_companhia": "EQUATORIAL GOIAS DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 52}, {"codigo_cvm": "20532", "ticker_b3": "SANB11", "nome_companhia": "BANCO SANTANDER (BRASIL) S.A.", "setor": "Financeiro", "segmento": "Bancos", "ops": 46}, {"codigo_cvm": "25070", "ticker_b3": "PLPL3", "nome_companhia": "PLANO & PLANO DESENVOLVIMENTO IMOBILI\u00c1RIO S.A.", "setor": "Consumo C\u00edclico", "segmento": "Incorpora\u00e7\u00f5es", "ops": 46}, {"codigo_cvm": "20010", "ticker_b3": "EQTL3", "nome_companhia": "EQUATORIAL S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 43}, {"codigo_cvm": "16608", "ticker_b3": "EQMA3", "nome_companhia": "EQUATORIAL MARANH\u00c3O DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 43}, {"codigo_cvm": "21431", "ticker_b3": "HYPE3", "nome_companhia": "HYPERA S/A", "setor": "Sa\u00fade", "segmento": "Medicamentos e Outros Produtos", "ops": 42}, {"codigo_cvm": "23272", "ticker_b3": "LOGG3", "nome_companhia": "LOG COMMERCIAL PROPERTIES E PARTICIPA\u00c7\u00d5ES", "setor": "Bens Industriais", "segmento": "Servi\u00e7os Diversos", "ops": 42}, {"codigo_cvm": "1155", "ticker_b3": "BEES3", "nome_companhia": "BANESTES SA BANCO DO ESTADO DO ESPIRITO SANTO", "setor": "Financeiro", "segmento": "Bancos", "ops": 36}, {"codigo_cvm": "14826", "ticker_b3": "PCAR3", "nome_companhia": "COMPANHIA BRASILEIRA DE DISTRIBUI\u00c7\u00c3O", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Alimentos", "ops": 32}, {"codigo_cvm": "25283", "ticker_b3": "AERI3", "nome_companhia": "AERIS IND. E COM. DE EQUIP. PARA GER. DE ENG. S.A.", "setor": "Bens Industriais", "segmento": "M\u00e1q. e Equip. Industriais", "ops": 32}, {"codigo_cvm": "22349", "ticker_b3": "AZZA3", "nome_companhia": "AZZAS 2154 S.A.", "setor": "Consumo C\u00edclico", "segmento": "Tecidos, Vestu\u00e1rio e Cal\u00e7ados", "ops": 32}, {"codigo_cvm": "5207", "ticker_b3": "DOHL4", "nome_companhia": "DOHLER S.A.", "setor": "Consumo C\u00edclico", "segmento": "Eletrodom\u00e9sticos", "ops": 31}, {"codigo_cvm": "25550", "ticker_b3": "ORVR3", "nome_companhia": "ORIZON VALORIZA\u00c7\u00c3O DE RES\u00cdDUOS S.A.", "setor": "Utilidade P\u00fablica", "segmento": "\u00c1gua e Saneamento", "ops": 31}, {"codigo_cvm": "14109", "ticker_b3": "RAPT4", "nome_companhia": "RANDONCORP S.A.", "setor": "Bens Industriais", "segmento": "Material Rodovi\u00e1rio", "ops": 31}, {"codigo_cvm": "6211", "ticker_b3": "FRAS3", "nome_companhia": "FRASLE MOBILITY S.A.", "setor": "Bens Industriais", "segmento": "Material Rodovi\u00e1rio", "ops": 30}, {"codigo_cvm": "16292", "ticker_b3": "BRFS3", "nome_companhia": "BRF S.A.", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Carnes e Derivados", "ops": 30}, {"codigo_cvm": "19739", "ticker_b3": "RENT3", "nome_companhia": "LOCALIZA RENT A CAR SA", "setor": "Bens Industriais", "segmento": "Servi\u00e7os Diversos", "ops": 29}, {"codigo_cvm": "7617", "ticker_b3": "ITSA4", "nome_companhia": "ITAUSA S.A.", "setor": "Financeiro", "segmento": "Holding Diversificadas", "ops": 27}, {"codigo_cvm": "20982", "ticker_b3": "MULT3", "nome_companhia": "MULTIPLAN - EMPREEND IMOBILIARIOS S.A.", "setor": "Financeiro", "segmento": "Explora\u00e7\u00e3o de Im\u00f3veis", "ops": 27}, {"codigo_cvm": "19615", "ticker_b3": "GRND3", "nome_companhia": "GRENDENE SA", "setor": "Consumo C\u00edclico", "segmento": "Cal\u00e7ados", "ops": 26}];
+
 // Carrega setores no menu
 (async()=>{
   try {
+    const menubar=document.getElementById('menubar');
+    // Primeira opção: Top 30
+    const elTop=document.createElement('div');
+    elTop.className='menu-item on';
+    elTop.textContent='⭐ Top 30';
+    elTop.onclick=()=>selecionarTop30(elTop);
+    menubar.appendChild(elTop);
+    // Setores
     const r=await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=setor&setor=not.is.null&order=setor`,{headers:HDR});
     const data=await r.json();
     const setores=[...new Set(data.map(d=>d.setor).filter(Boolean))].sort();
-    const menubar=document.getElementById('menubar');
     setores.forEach(s=>{
       const el=document.createElement('div');
       el.className='menu-item';
@@ -221,13 +230,36 @@ let gTickerExpandido=null;
       el.onclick=()=>selecionarSetor(s,el);
       menubar.appendChild(el);
     });
+    // Carrega Top 30 por default
+    selecionarTop30(elTop);
   } catch(e){}
 })();
+
+function selecionarTop30(el){
+  document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on');
+  buscarTop30();
+}
 
 function selecionarSetor(setor, el){
   document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('on'));
   el.classList.add('on');
   buscarPorSetor(setor);
+}
+
+async function buscarTop30(){
+  setStatus('Carregando Top 30...');
+  ['metricsAll','chartArea'].forEach(id=>document.getElementById(id).style.display='none');
+  gTickerExpandido=null;
+  const tickers=TOP30.map(t=>({codigo_cvm:t.codigo_cvm,ticker_b3:t.ticker_b3,nome_companhia:t.nome_companhia,segmento:t.segmento}));
+  renderSetorTabela('⭐ Top 30 Movimentações (2026)',tickers);
+  document.getElementById('statusMsg').style.display='none';
+  document.getElementById('chartArea').style.display='block';
+  document.getElementById('chartSection').style.display='none';
+  const lbl=document.getElementById('activeLabel');
+  document.getElementById('activeLabelText').textContent='Top 30 ações com mais movimentações em 2026';
+  lbl.style.display='block';
+  for(const t of tickers) carregarLinhaTabela(t);
 }
 
 async function buscarPorSetor(setor){
@@ -483,7 +515,7 @@ function drawInlineChart(ticker, data, porDia){
     const varColor=varPct===null?'':(varPct>=0?'#1D9E75':'#D85A30');
     const varStr=varPct!==null?((varPct>=0?'+':'')+varPct.toFixed(2).replace('.',',')+' %'):'—';
     const dateStr=c.date?c.date.split('-').reverse().join('/'):'';
-    let html=`<div style="font-weight:500;font-size:12px;text-align:center;margin-bottom:5px">${dateStr}</div><table style="width:100%;border-collapse:collapse">`;
+    let html=`<div style="font-weight:500;font-size:12px;text-align:center;margin-bottom:5px">${dateStr}</div><table style="width:100%;border-collapse:collapse;table-layout:fixed">`;
     if(c.open) html+=rT('Abertura','R$'+c.open.toFixed(2));
     if(c.close) html+=rT('Fechamento','R$'+c.close.toFixed(2));
     if(varPct!==null) html+=rT('Variação',varStr,varColor);
@@ -496,14 +528,14 @@ function drawInlineChart(ticker, data, porDia){
         const pF=volFin>0?fmtPct((info.vol_compra||0)/volFin*100):'—';
         const pQ=qtdDia>0?fmtPct((info.qtd_compra||0)/qtdDia*100):'—';
         html+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span style="width:6px;height:6px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:12px">Compra</span></div>`;
-        html+=`<table style="width:100%;border-collapse:collapse">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}</table>`;
+        html+=`<table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}</table>`;
         if(info.venda>0) html+=`<div style="border-top:0.5px solid var(--border);margin:5px 0 4px"></div>`;
       }
       if(info.venda>0){
         const pF=volFin>0?fmtPct((info.vol_venda||0)/volFin*100):'—';
         const pQ=qtdDia>0?fmtPct((info.qtd_venda||0)/qtdDia*100):'—';
         html+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span style="width:6px;height:6px;border-radius:50%;background:#D85A30;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:12px">Venda</span></div>`;
-        html+=`<table style="width:100%;border-collapse:collapse">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}</table>`;
+        html+=`<table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}</table>`;
       }
     }
     tt.innerHTML=html; tt.style.display='block';
@@ -643,8 +675,8 @@ function drawMainChart(){
     html+=`</table>`;
     if(info.compra>0||info.venda>0){
       html+=`<div style="border-top:0.5px solid var(--border);margin:8px 0 6px"></div>`;
-      if(info.compra>0){const pF=vF>0?fmtPct((info.vol_compra||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_compra||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:13px">Compra</span></div><table style="width:100%;border-collapse:collapse">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}`;const gC=Object.entries(grps).filter(([,g])=>(g.compra||0)>0);if(gC.length){html+=dv();for(const[g,gi]of gC)html+=rS(g,`${fmtN(gi.qtd_compra||0)} · ${fmt(gi.vol_compra||0)}`);}html+=`</table>`;if(info.venda>0)html+=`<div style="border-top:0.5px solid var(--border);margin:6px 0 5px"></div>`;}
-      if(info.venda>0){const pF=vF>0?fmtPct((info.vol_venda||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_venda||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#D85A30;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:13px">Venda</span></div><table style="width:100%;border-collapse:collapse">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}`;const gV=Object.entries(grps).filter(([,g])=>(g.venda||0)>0);if(gV.length){html+=dv();for(const[g,gi]of gV)html+=rS(g,`${fmtN(gi.qtd_venda||0)} · ${fmt(gi.vol_venda||0)}`);}html+=`</table>`;}
+      if(info.compra>0){const pF=vF>0?fmtPct((info.vol_compra||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_compra||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:13px">Compra</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}`;const gC=Object.entries(grps).filter(([,g])=>(g.compra||0)>0);if(gC.length){html+=dv();for(const[g,gi]of gC)html+=rS(g,`${fmtN(gi.qtd_compra||0)} · ${fmt(gi.vol_compra||0)}`);}html+=`</table>`;if(info.venda>0)html+=`<div style="border-top:0.5px solid var(--border);margin:6px 0 5px"></div>`;}
+      if(info.venda>0){const pF=vF>0?fmtPct((info.vol_venda||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_venda||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#D85A30;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:13px">Venda</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}`;const gV=Object.entries(grps).filter(([,g])=>(g.venda||0)>0);if(gV.length){html+=dv();for(const[g,gi]of gV)html+=rS(g,`${fmtN(gi.qtd_venda||0)} · ${fmt(gi.vol_venda||0)}`);}html+=`</table>`;}
     }
     tt.innerHTML=html;tt.style.display='block';
     const wR=tt.parentElement.getBoundingClientRect();
