@@ -77,8 +77,8 @@
     .setor-table .col-vol { width:80px; }
     .setor-table .col-pm { width:80px; }
     .setor-table .col-pct { width:70px; }
-    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); }
-    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:0; z-index:3; background:var(--bg2); box-shadow:0 0.5px 0 var(--border); }
+    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); position:sticky; top:0; z-index:4; background:var(--bg2); }
+    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:37px; z-index:3; background:var(--bg2); box-shadow:0 0.5px 0 var(--border); }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
@@ -126,7 +126,7 @@
 <body>
 <div id="topFixed">
   <header>
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;justify-content:center;">
       <svg width="38" height="32" viewBox="0 0 64 54" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="18" cy="46" rx="14" ry="4" fill="#1a4a6b" opacity="0.4"/>
         <path d="M6 44 Q10 41 14 44 Q18 47 22 44 Q26 41 30 44" stroke="#2a7ab0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
@@ -354,10 +354,18 @@ async function carregarLinhaTabela(t){
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(!row) return;
     while(row.children.length>1) row.removeChild(row.lastChild);
+    // oculta ticker sem nenhuma operação (compra e venda ambos zero)
+    const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
+    if(totC===0 && totV===0){
+      row.style.display='none';
+      const expRow=document.getElementById(`exp-${t.ticker_b3}`);
+      if(expRow) expRow.style.display='none';
+      return;
+    }
+    row.style.display='';
     row.insertAdjacentHTML('beforeend', buildCols(mov, candles));
     row._movData=mov; row._candles=candles;
-    // guarda total de operações para ranking
-    const tot=(mov.totais?.compra||0)+(mov.totais?.venda||0);
+    const tot=totC+totV;
     row._totalOps=tot;
     reordenarTabela();
   } catch(e){
