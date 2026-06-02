@@ -77,8 +77,8 @@
     .setor-table .col-vol { width:80px; }
     .setor-table .col-pm { width:80px; }
     .setor-table .col-pct { width:70px; }
-    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); position:sticky; top:88px; z-index:5; background:var(--bg2); }
-    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:125px; z-index:5; background:var(--bg2); }
+    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); }
+    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
@@ -477,7 +477,6 @@ async function toggleExpandir(ticker, cvm, rowEl){
   const expRow=document.getElementById(`exp-${ticker}`);
   if(!expRow) return;
 
-  // fecha anterior
   if(gTickerExpandido){
     const prevExp=document.getElementById(`exp-${gTickerExpandido}`);
     const prevRow=document.getElementById(`row-${gTickerExpandido}`);
@@ -490,26 +489,22 @@ async function toggleExpandir(ticker, cvm, rowEl){
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
 
-  // Se já carregou tudo, só desenha
+  // Se já tem dados completos, desenha direto
   if(rowEl._candles!==null && rowEl._movData?.por_dia && Object.keys(rowEl._movData.por_dia).length>0){
     drawInlineChart(ticker, rowEl._candles||[], rowEl._movData.por_dia||{});
     atualizarPct(rowEl);
-    scrollParaExpand(expRow);
     return;
   }
 
-  // Loading no canvas
+  // Loading
   const cc=document.getElementById(`ic-${ticker}`);
   if(cc){
     const W=cc.parentElement.clientWidth-20||800;
     cc.width=W; cc.height=240;
     const ctx=cc.getContext('2d');
-    ctx.fillStyle=window.matchMedia('(prefers-color-scheme:light)').matches?'#6b6b67':'#9c9a92';
-    ctx.font='14px system-ui'; ctx.textAlign='center';
+    ctx.fillStyle='#9c9a92'; ctx.font='14px system-ui'; ctx.textAlign='center';
     ctx.fillText('Carregando...', W/2, 120);
   }
-
-  scrollParaExpand(expRow);
 
   try {
     const tickerYahoo=rowEl._viewData?.ticker_yahoo||rowEl._movData?.ticker_yahoo||'';
@@ -526,18 +521,6 @@ async function toggleExpandir(ticker, cvm, rowEl){
   } catch(e){ console.error(e); }
 }
 
-function scrollParaExpand(expRow){
-  // Aguarda o layout ser recalculado antes de checar posição
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    const r=expRow.getBoundingClientRect();
-    const topH=(document.getElementById('topFixed')?.offsetHeight||0)+40;
-    // Só rola para baixo se o expand saiu da tela
-    if(r.bottom > window.innerHeight){
-      window.scrollBy({top: r.bottom - window.innerHeight + 40, behavior:'smooth'});
-    }
-  }));
-}
-
 function atualizarPct(rowEl){
   const d=rowEl._viewData;
   const candles=rowEl._candles;
@@ -548,8 +531,8 @@ function atualizarPct(rowEl){
   const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
   const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
   const pct=(v,t)=>t>0&&v>0?`${((v/t)*100).toFixed(2).replace('.',',')}%`:'—';
-  if(cells[4])  cells[4].innerHTML =`<span class="v-pctb">${pct(qC,tQ)}</span>`;
-  if(cells[5])  cells[5].innerHTML =`<span class="v-pctb">${pct(vC,tV)}</span>`;
+  if(cells[4])  cells[4].innerHTML=`<span class="v-pctb">${pct(qC,tQ)}</span>`;
+  if(cells[5])  cells[5].innerHTML=`<span class="v-pctb">${pct(vC,tV)}</span>`;
   if(cells[10]) cells[10].innerHTML=`<span class="v-pcts">${pct(qV,tQ)}</span>`;
   if(cells[11]) cells[11].innerHTML=`<span class="v-pcts">${pct(vV,tV)}</span>`;
 }
