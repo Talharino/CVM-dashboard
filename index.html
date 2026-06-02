@@ -478,7 +478,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
   const expRow=document.getElementById(`exp-${ticker}`);
   if(!expRow) return;
 
-  // fecha qualquer aberto
+  // fecha anterior
   if(gTickerExpandido){
     const prevExp=document.getElementById(`exp-${gTickerExpandido}`);
     const prevRow=document.getElementById(`row-${gTickerExpandido}`);
@@ -490,51 +490,71 @@ async function toggleExpandir(ticker, cvm, rowEl){
   rowEl.classList.add('ativo');
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const r=expRow.getBoundingClientRect(); const topFixed=document.getElementById('topFixed'); const fh=topFixed?topFixed.offsetHeight:0; if(r.bottom>window.innerHeight) window.scrollBy({top:r.bottom-window.innerHeight+40,behavior:'smooth'}); }));
 
-  // Se já tem dados carregados, desenha direto
-  if(rowEl._candles!==null && rowEl._movData && rowEl._movData.por_dia){
+  // Se já carregou tudo, só desenha
+  if(rowEl._candles!==null && rowEl._movData?.por_dia && Object.keys(rowEl._movData.por_dia).length>0){
     drawInlineChart(ticker, rowEl._candles||[], rowEl._movData.por_dia||{});
+    atualizarPct(rowEl);
+    scrollParaExpand(expRow);
     return;
   }
 
-  // Mostra loading sem destruir os canvas
+  // Loading no canvas
   const cc=document.getElementById(`ic-${ticker}`);
-  const vc=document.getElementById(`iv-${ticker}`);
-  if(cc){ const ctx=cc.getContext('2d'); ctx.clearRect(0,0,cc.width,cc.height); cc.width=cc.parentElement.clientWidth-20||800; cc.height=240; ctx.fillStyle='var(--text2)'; ctx.font='14px system-ui'; ctx.textAlign='center'; ctx.fillText('Carregando...', cc.width/2, cc.height/2); }
+  if(cc){
+    const W=cc.parentElement.clientWidth-20||800;
+    cc.width=W; cc.height=240;
+    const ctx=cc.getContext('2d');
+    ctx.fillStyle=window.matchMedia('(prefers-color-scheme:light)').matches?'#6b6b67':'#9c9a92';
+    ctx.font='14px system-ui'; ctx.textAlign='center';
+    ctx.fillText('Carregando...', W/2, 120);
+  }
+
+  scrollParaExpand(expRow);
 
   try {
-    // Busca movimentacoes completo e cotacao em paralelo
-    const tickerYahoo = rowEl._movData?.ticker_yahoo || rowEl._viewData?.ticker_yahoo || '';
-    const [movFull, cotRes] = await Promise.all([
+    const tickerYahoo=rowEl._viewData?.ticker_yahoo||rowEl._movData?.ticker_yahoo||'';
+    const [movFull, cotRes]=await Promise.all([
       fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`).then(r=>r.json()).catch(()=>null),
-      tickerYahoo ? fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})) : Promise.resolve({candles:[]})
+      tickerYahoo?fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})):Promise.resolve({candles:[]})
     ]);
-
-    const mov = (movFull && !movFull.error) ? movFull : rowEl._movData;
-    const candles = cotRes.candles || [];
-    rowEl._movData = mov;
-    rowEl._candles = candles;
-
+    const mov=(movFull&&!movFull.error)?movFull:rowEl._movData;
+    const candles=cotRes?.candles||[];
+    rowEl._movData=mov;
+    rowEl._candles=candles;
     drawInlineChart(ticker, candles, mov?.por_dia||{});
-    // Atualiza % diretamente nas células sem destruir a linha
-    if(rowEl._viewData && candles.length){
-      const d=rowEl._viewData;
-      const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
-      const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
-      const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
-      const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
-      const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
-      console.log('cells count:',cells.length,'tQ:',tQ,'tV:',tV,'qC:',qC,'vC:',vC);
-      if(cells.length>=12){
-        if(tQ>0&&qC>0) cells[4].innerHTML=`<span class="v-pctb">${((qC/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
-        if(tV>0&&vC>0) cells[5].innerHTML=`<span class="v-pctb">${((vC/tV)*100).toFixed(2).replace('.',',')}%</span>`;
-        if(tQ>0&&qV>0) cells[10].innerHTML=`<span class="v-pcts">${((qV/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
-        if(tV>0&&vV>0) cells[11].innerHTML=`<span class="v-pcts">${((vV/tV)*100).toFixed(2).replace('.',',')}%</span>`;
-      }
-    }
-  } catch(e){ console.error('toggleExpandir erro:',e); }
+    atualizarPct(rowEl);
+  } catch(e){ console.error(e); }
 }
+
+function scrollParaExpand(expRow){
+  requestAnimationFrame(()=>{
+    const r=expRow.getBoundingClientRect();
+    const topH=document.getElementById('topFixed')?.offsetHeight||0;
+    if(r.top < topH) {
+      window.scrollBy({top: r.top - topH - 8, behavior:'smooth'});
+    } else if(r.bottom > window.innerHeight) {
+      window.scrollBy({top: r.bottom - window.innerHeight + 40, behavior:'smooth'});
+    }
+  });
+}
+
+function atualizarPct(rowEl){
+  const d=rowEl._viewData;
+  const candles=rowEl._candles;
+  if(!d||!candles||!candles.length) return;
+  const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
+  const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
+  const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
+  const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
+  const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
+  const pct=(v,t)=>t>0&&v>0?`${((v/t)*100).toFixed(2).replace('.',',')}%`:'—';
+  if(cells[4])  cells[4].innerHTML =`<span class="v-pctb">${pct(qC,tQ)}</span>`;
+  if(cells[5])  cells[5].innerHTML =`<span class="v-pctb">${pct(vC,tV)}</span>`;
+  if(cells[10]) cells[10].innerHTML=`<span class="v-pcts">${pct(qV,tQ)}</span>`;
+  if(cells[11]) cells[11].innerHTML=`<span class="v-pcts">${pct(vV,tV)}</span>`;
+}
+
 
 function drawInlineChart(ticker, data, porDia){
   const cc=document.getElementById(`ic-${ticker}`);
