@@ -289,7 +289,7 @@ async function buscarTop30(){
   const lbl=document.getElementById('activeLabel');
   document.getElementById('activeLabelText').textContent='Top 30 ações com mais movimentações em 2026';
   lbl.style.display='block';
-  for(const t of tickers) carregarLinhaTabela(t);
+  carregarLote(tickers);
 }
 
 async function buscarPorSetor(setor){
@@ -305,7 +305,7 @@ async function buscarPorSetor(setor){
     document.getElementById('chartArea').style.display='block';
     document.getElementById('chartSection').style.display='none';
     // active label
-    for(const t of tickers) carregarLinhaTabela(t);
+    carregarLote(tickers);
   } catch(e){setStatus('Erro: '+e.message);}
 }
 
@@ -343,14 +343,11 @@ function renderSetorTabela(setor,tickers){
 
 async function carregarLinhaTabela(t){
   try {
+    // Carrega só movimentacoes — cotacao carrega apenas ao expandir
     const mov=await (await fetch(`${FN}/movimentacoes?cvm=${t.codigo_cvm}&from=2026-01-01`)).json();
-    let candles=[];
-    if(mov.ticker_yahoo){
-      try { const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`)).json(); if(c.candles) candles=c.candles; } catch(e){} }
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(!row) return;
     while(row.children.length>1) row.removeChild(row.lastChild);
-    // oculta ticker sem nenhuma operação (compra e venda ambos zero)
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
     if(totC===0 && totV===0){
       row.style.display='none';
@@ -359,14 +356,23 @@ async function carregarLinhaTabela(t){
       return;
     }
     row.style.display='';
-    row.insertAdjacentHTML('beforeend', buildCols(mov, candles));
-    row._movData=mov; row._candles=candles;
+    // Na tabela usa candles vazio — % serão calculados ao expandir
+    row.insertAdjacentHTML('beforeend', buildCols(mov, []));
+    row._movData=mov; row._candles=null;
     const tot=totC+totV;
     row._totalOps=tot;
     reordenarTabela();
   } catch(e){
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(row){ while(row.children.length>1) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
+  }
+}
+
+// Carrega em lotes para não sobrecarregar
+async function carregarLote(tickers, loteSize=5){
+  for(let i=0;i<tickers.length;i+=loteSize){
+    const lote=tickers.slice(i,i+loteSize);
+    await Promise.all(lote.map(t=>carregarLinhaTabela(t)));
   }
 }
 
@@ -445,8 +451,24 @@ async function toggleExpandir(ticker, cvm, rowEl){
   const vc=document.getElementById(`iv-${ticker}`);
   if(!cc||!vc) return;
 
-  // usa dados já carregados se existirem
+  // usa dados já carregados se existirem; cotacao carrega sob demanda
   let mov=rowEl._movData, candles=rowEl._candles;
+
+  if(candles===null && mov){
+    // cotacao ainda não carregada — carrega agora
+    const chartDiv=document.getElementById(`ic-${ticker}`);
+    if(chartDiv) chartDiv.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando cotação...</div>';
+    try {
+      if(mov.ticker_yahoo){
+        const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`)).json();
+        candles=c.candles||[];
+      } else { candles=[]; }
+      rowEl._candles=candles;
+      // Atualiza colunas % com candles reais
+      while(rowEl.children.length>1) rowEl.removeChild(rowEl.lastChild);
+      rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
+    } catch(e){ candles=[]; rowEl._candles=[]; }
+  }
 
   if(!mov){
     cc.parentElement.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text2);font-size:13px;">Carregando...</div>';
