@@ -29,8 +29,8 @@
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.5rem; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; flex-wrap:wrap; }
-    .search-row input, .search-row select { flex:1; min-width:160px; height:40px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; padding:0 12px; outline:none; }
-    .search-row input:focus, .search-row select:focus { border-color:var(--line); }
+    .search-row input { flex:1; min-width:160px; height:40px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; padding:0 12px; outline:none; }
+    .search-row input:focus { border-color:var(--line); }
     .search-row button { height:40px; padding:0 20px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; cursor:pointer; }
     .search-row button:hover { background:var(--bg3); }
     .sug-box { background:var(--bg); border:0.5px solid var(--border); border-radius:8px; margin-top:6px; display:none; max-height:200px; overflow-y:auto; }
@@ -68,9 +68,9 @@
     .dot { display:inline-block; width:11px; height:11px; border-radius:2px; flex-shrink:0; }
 
     #candleCanvas { width:100%; display:block; cursor:crosshair; }
-    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:9px 13px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:2; }
+    #volCanvas { width:100%; display:block; }
+    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:9px 13px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:1.8; min-width:200px; }
     .candle-wrap { position:relative; }
-    .chart-wrap2 { position:relative; width:100%; height:150px; }
     footer { text-align:center; padding:2rem; font-size:13px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
   </style>
 </head>
@@ -82,20 +82,13 @@
 <main>
   <div class="search-card">
     <div class="search-row">
-      <input type="text" id="cvmInput" placeholder="Código CVM ou nome da empresa..." autocomplete="off"/>
-      <select id="grupoSelect">
-        <option value="">Todos os grupos</option>
-        <option value="Diretoria">Diretoria</option>
-        <option value="Conselho">Conselho de Administração</option>
-        <option value="Controlador">Controlador</option>
-        <option value="Conselho Fiscal">Conselho Fiscal</option>
-      </select>
+      <input type="text" id="tickerInput" placeholder="Ticker B3 (ex: ABEV3, PETR4)..." autocomplete="off"/>
       <button onclick="buscar()">Buscar</button>
     </div>
     <div id="sugBox" class="sug-box"></div>
   </div>
 
-  <div id="statusMsg" class="status">Digite o código CVM ou o nome da empresa para começar.</div>
+  <div id="statusMsg" class="status">Digite o ticker B3 da empresa para começar.</div>
 
   <div id="metricsTop" class="metrics-top" style="display:none">
     <div class="metric"><div class="lbl">Empresa</div><div class="val sm" id="mEmpresa">—</div></div>
@@ -130,62 +123,65 @@
       <div class="sec-lbl">Candlestick diário + movimentações de insiders (desde 01/01/2026)</div>
       <div class="legend">
         <span><span class="dot" style="background:#e8e6de;border:1px solid #aaa"></span>Alta (fecha > abre)</span>
-        <span><span class="dot" style="background:#111110;border:1px solid #aaa"></span>Baixa (fecha < abre)</span>
+        <span><span class="dot" style="background:#111110;border:1px solid #aaa"></span>Baixa (fecha &lt; abre)</span>
         <span><span class="dot" style="background:#1D9E75;border-radius:50%"></span>Compra insider</span>
         <span><span class="dot" style="background:#D85A30;border-radius:50%"></span>Venda insider</span>
       </div>
       <div class="candle-wrap">
         <canvas id="candleCanvas"></canvas>
+        <canvas id="volCanvas"></canvas>
         <div class="candle-tooltip" id="candleTooltip"></div>
       </div>
     </div>
-    <div class="chart-section">
-      <div class="sec-lbl">Volume financeiro das operações de insiders por dia (R$)</div>
-      <div class="chart-wrap2"><canvas id="volChart" role="img" aria-label="Volume financeiro das operações por dia"></canvas></div>
-    </div>
   </div>
 </main>
-<footer>Dados: CVM (movimentações) + Yahoo Finance (cotações reais) · Apenas compra/venda à vista · realizadas_operacoes = Sim</footer>
+<footer>Dados: CVM (movimentações) · Yahoo Finance (cotações) · Todos os grupos · Compra/venda à vista · realizadas_operacoes = Sim</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const SUPA_URL = 'https://uqadyxirtmeqybgobmai.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxYWR5eGlydG1lcXliZ29ibWFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODAxNzcsImV4cCI6MjA5NDg1NjE3N30.7Wpcj_puMVHoXVdvdPt-_g_I5aSNoSEdzgklkL6pO-0';
 const FN = `${SUPA_URL}/functions/v1`;
 
-let volChart = null, debTimer = null;
-let gCandles = [], gPorDia = {};
+let debTimer = null;
+let gCandles = [], gPorDia = {}, gPorDiaGrupo = {};
 
-document.getElementById('cvmInput').addEventListener('input', function() {
+const tickerInput = document.getElementById('tickerInput');
+
+tickerInput.addEventListener('input', function() {
   clearTimeout(debTimer);
-  const v = this.value.trim();
+  const v = this.value.trim().toUpperCase();
   if (v.length < 2) { hideSug(); return; }
-  debTimer = setTimeout(() => searchCVM(v), 350);
+  debTimer = setTimeout(() => searchTicker(v), 350);
 });
-document.getElementById('cvmInput').addEventListener('keydown', e => { if (e.key==='Enter') buscar(); });
+tickerInput.addEventListener('keydown', e => { if (e.key==='Enter') { hideSug(); buscar(); } });
 
-async function searchCVM(q) {
-  const isNum = /^\d+$/.test(q);
-  const url = isNum
-    ? `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&codigo_cvm=eq.${q}&limit=1`
-    : `${SUPA_URL}/rest/v1/CIA_ABERTA_DOC_VLMO_DADOS?select=codigo_cvm,nome_companhia&nome_companhia=ilike.*${encodeURIComponent(q)}*&limit=8`;
+async function searchTicker(q) {
   try {
+    const url = `${SUPA_URL}/rest/v1/TICKER_MAPPING?select=codigo_cvm,nome_companhia,ticker_b3&ticker_b3=ilike.${encodeURIComponent(q)}*&limit=8`;
     const r = await fetch(url, { headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}` } });
     const data = await r.json();
-    const seen = new Set();
-    showSug(data.filter(d => { if(seen.has(d.codigo_cvm)) return false; seen.add(d.codigo_cvm); return true; }));
+    showSug(data);
   } catch(e) {}
 }
+
 function showSug(items) {
   const box = document.getElementById('sugBox');
-  if (!items.length) { box.style.display='none'; return; }
+  if (!items || !items.length) { box.style.display='none'; return; }
   box.innerHTML = items.map(d =>
-    `<div class="sug-item" onclick="selectCVM('${d.codigo_cvm}')"><strong>${d.codigo_cvm}</strong> — ${d.nome_companhia}</div>`
+    `<div class="sug-item" onclick="selectTicker('${d.ticker_b3}','${d.codigo_cvm}')"><strong>${d.ticker_b3}</strong> — ${d.nome_companhia}</div>`
   ).join('');
   box.style.display = 'block';
 }
 function hideSug() { document.getElementById('sugBox').style.display='none'; }
-function selectCVM(cvm) { document.getElementById('cvmInput').value=cvm; hideSug(); buscar(); }
+
+let gCvmSelecionado = null;
+
+function selectTicker(ticker, cvm) {
+  tickerInput.value = ticker;
+  gCvmSelecionado = cvm;
+  hideSug();
+  buscar();
+}
 
 function fmt(v) {
   if (v >= 1e6) return 'R$ '+(v/1e6).toFixed(1)+'M';
@@ -195,21 +191,36 @@ function fmt(v) {
 function fmtQtd(v) { return Number(v).toLocaleString('pt-BR'); }
 
 async function buscar() {
-  const cvm   = document.getElementById('cvmInput').value.trim();
-  const grupo = document.getElementById('grupoSelect').value;
-  if (!cvm) { setStatus('Informe o código CVM ou nome da empresa.'); return; }
+  const tickerRaw = tickerInput.value.trim().toUpperCase();
+  if (!tickerRaw) { setStatus('Informe o ticker B3 da empresa.'); return; }
 
-  setStatus('Buscando movimentações...');
+  setStatus('Buscando ticker...');
   ['metricsTop','metricsBottom','chartArea'].forEach(id => document.getElementById(id).style.display='none');
 
   try {
-    let movUrl = `${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`;
-    if (grupo) movUrl += `&grupo=${encodeURIComponent(grupo)}`;
-    const movData = await (await fetch(movUrl)).json();
+    // Se não temos cvm já selecionado, buscar pelo ticker
+    let cvm = gCvmSelecionado;
+    if (!cvm) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=codigo_cvm,nome_companhia,ticker_b3,ticker_yahoo&ticker_b3=ilike.${encodeURIComponent(tickerRaw)}&limit=1`, {
+        headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}` }
+      });
+      const data = await r.json();
+      if (!data || !data.length) {
+        setStatus(`Ticker "${tickerRaw}" não encontrado no mapeamento. Verifique o ticker ou cadastre-o.`);
+        return;
+      }
+      cvm = data[0].codigo_cvm;
+    }
+    gCvmSelecionado = null; // reset para próxima busca
+
+    setStatus('Buscando movimentações...');
+
+    // Buscar todos os grupos (sem filtro de grupo)
+    const movData = await (await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`)).json();
 
     if (movData.error) { setStatus(`Erro: ${movData.error}`); return; }
     if (!movData.total_movimentacoes) {
-      setStatus(`Nenhuma compra/venda à vista encontrada para CVM ${cvm}${grupo?` (${grupo})`:''} a partir de 01/01/2026.`);
+      setStatus(`Nenhuma compra/venda à vista encontrada para ${tickerRaw} a partir de 01/01/2026.`);
       return;
     }
 
@@ -224,12 +235,37 @@ async function buscar() {
       } catch(e) {}
     }
 
+    // Buscar por_dia com detalhe de grupo para o tooltip
+    // A edge function /movimentacoes já retorna por_dia agregado
+    // Vamos buscar também os grupos individualmente para o tooltip
+    const grupos = ['Diretoria','Conselho Administração','Controlador','Conselho Fiscal','Órgãos Técnicos ou Consultivos'];
+    const porDiaGrupo = {};
+
+    // Buscar cada grupo em paralelo para montar o detalhe do tooltip
+    try {
+      const promessas = grupos.map(g =>
+        fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01&grupo=${encodeURIComponent(g)}`).then(r=>r.json()).catch(()=>null)
+      );
+      const resultados = await Promise.all(promessas);
+      for (let gi=0; gi<grupos.length; gi++) {
+        const res = resultados[gi];
+        if (!res || !res.por_dia) continue;
+        const nomeGrupo = grupos[gi];
+        for (const [dia, info] of Object.entries(res.por_dia)) {
+          if (!porDiaGrupo[dia]) porDiaGrupo[dia] = {};
+          if (info.compra > 0 || info.venda > 0) {
+            porDiaGrupo[dia][nomeGrupo] = info;
+          }
+        }
+      }
+    } catch(e) {}
+
     gCandles = candles;
     gPorDia  = movData.por_dia || {};
+    gPorDiaGrupo = porDiaGrupo;
 
     renderMetrics(movData);
-    drawCandles();
-    renderVolChart(candles, movData.por_dia || {});
+    drawCombinedChart();
     document.getElementById('statusMsg').style.display='none';
   } catch(e) { setStatus('Erro: '+e.message); }
 }
@@ -262,49 +298,66 @@ function renderMetrics(d) {
   document.getElementById('chartArea').style.display     = 'block';
 }
 
-function drawCandles() {
-  const canvas = document.getElementById('candleCanvas');
-  const wrap   = canvas.parentElement;
-  const W = wrap.clientWidth || 900;
-  const H = 360;
-  canvas.width  = W;
-  canvas.height = H;
-
-  const ctx = canvas.getContext('2d');
+function drawCombinedChart() {
   const isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-  const textColor = isDark ? '#9c9a92' : '#6b6b67';
-  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-  const wickColor = isDark ? '#666' : '#999';
-
-  // Candle: branco (alta) / preto (baixa)
-  const upFill   = isDark ? '#e8e6de' : '#ffffff';
-  const upStroke = isDark ? '#888'    : '#888';
-  const dnFill   = isDark ? '#111110' : '#1a1a18';
-  const dnStroke = isDark ? '#888'    : '#666';
-
-  const buyColor  = '#1D9E75';
-  const sellColor = '#D85A30';
+  const textColor  = isDark ? '#9c9a92' : '#6b6b67';
+  const gridColor  = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const wickColor  = isDark ? '#666' : '#999';
+  const upFill     = isDark ? '#e8e6de' : '#ffffff';
+  const upStroke   = isDark ? '#888'    : '#888';
+  const dnFill     = isDark ? '#111110' : '#1a1a18';
+  const dnStroke   = isDark ? '#888'    : '#666';
+  const buyColor   = '#1D9E75';
+  const sellColor  = '#D85A30';
 
   const data = gCandles;
+  const porDia = gPorDia;
+
+  // Dimensões
+  const wrap       = document.getElementById('candleCanvas').parentElement;
+  const W          = wrap.clientWidth || 900;
+  const H_CANDLE   = 340;
+  const H_VOL      = 90;
+  const GAP        = 6;
+  const H_TOTAL    = H_CANDLE + GAP + H_VOL;
+
+  // Candle canvas
+  const candleCanvas = document.getElementById('candleCanvas');
+  candleCanvas.width  = W;
+  candleCanvas.height = H_CANDLE;
+  candleCanvas.style.display = 'block';
+
+  // Vol canvas
+  const volCanvas = document.getElementById('volCanvas');
+  volCanvas.width  = W;
+  volCanvas.height = H_VOL;
+  volCanvas.style.marginTop = GAP + 'px';
+  volCanvas.style.display = 'block';
+
   if (!data.length) return;
 
-  const PAD_L=56, PAD_R=16, PAD_T=20, PAD_B=44;
+  const allDates = data.map(c=>c.date);
+  const n        = allDates.length;
+
+  const PAD_L=56, PAD_R=16, PAD_T=20, PAD_B=30;
   const plotW = W - PAD_L - PAD_R;
-  const plotH = H - PAD_T - PAD_B;
+  const plotH = H_CANDLE - PAD_T - PAD_B;
+
+  const step    = plotW / n;
+  const candleW = Math.max(3, step * 0.65);
+
+  // ── CANDLE CHART ──
+  const ctx = candleCanvas.getContext('2d');
 
   const allH = data.map(d=>d.high).filter(Boolean);
   const allL = data.map(d=>d.low).filter(Boolean);
   const minP = Math.min(...allL) * 0.998;
   const maxP = Math.max(...allH) * 1.002;
 
-  const n       = data.length;
-  const step    = plotW / n;
-  const candleW = Math.max(3, step * 0.65);
-
   function yOf(p) { return PAD_T + plotH - ((p-minP)/(maxP-minP))*plotH; }
   function xOf(i) { return PAD_L + i*step + step/2; }
 
-  // Grid
+  // Grid e labels eixo Y
   ctx.strokeStyle = gridColor;
   ctx.lineWidth   = 0.5;
   const ticks = 6;
@@ -324,7 +377,7 @@ function drawCandles() {
   ctx.font       = '11px system-ui';
   ctx.textAlign  = 'center';
   for (let i=0; i<n; i+=labelEvery) {
-    ctx.fillText(data[i].date.slice(5), xOf(i), H-PAD_B+16);
+    ctx.fillText(data[i].date.slice(5), xOf(i), H_CANDLE - PAD_B + 16);
   }
 
   // Candles
@@ -333,21 +386,16 @@ function drawCandles() {
     if (!c.open||!c.high||!c.low||!c.close) continue;
     const x    = xOf(i);
     const isUp = c.close >= c.open;
-
-    // Mecha
     ctx.strokeStyle = wickColor;
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(x, yOf(c.high));
     ctx.lineTo(x, yOf(c.low));
     ctx.stroke();
-
-    // Corpo
     const yO    = yOf(c.open);
     const yC    = yOf(c.close);
     const bodyY = Math.min(yO,yC);
     const bodyH = Math.max(1.5, Math.abs(yO-yC));
-
     ctx.fillStyle   = isUp ? upFill   : dnFill;
     ctx.strokeStyle = isUp ? upStroke : dnStroke;
     ctx.lineWidth   = 1;
@@ -355,106 +403,144 @@ function drawCandles() {
     ctx.strokeRect(x - candleW/2, bodyY, candleW, bodyH);
   }
 
-  // Marcadores de insider — setas maiores
-  const arrowSize = 10;
+  // Bolinhas de insider
+  const dotR = 5;
   for (let i=0; i<n; i++) {
     const d    = data[i].date;
-    const info = gPorDia[d];
+    const info = porDia[d];
     if (!info) continue;
     const x = xOf(i);
 
     if (info.compra > 0) {
-      // Seta para cima (compra) — abaixo da mecha inferior
-      const tipY  = yOf(data[i].low) + arrowSize + 6;
-      const baseY = tipY + arrowSize * 1.6;
-      ctx.fillStyle = buyColor;
+      const cy = yOf(data[i].low) + dotR + 5;
       ctx.beginPath();
-      ctx.moveTo(x, tipY);
-      ctx.lineTo(x - arrowSize, baseY);
-      ctx.lineTo(x - arrowSize*0.35, baseY);
-      ctx.lineTo(x - arrowSize*0.35, baseY + arrowSize*0.9);
-      ctx.lineTo(x + arrowSize*0.35, baseY + arrowSize*0.9);
-      ctx.lineTo(x + arrowSize*0.35, baseY);
-      ctx.lineTo(x + arrowSize, baseY);
-      ctx.closePath();
+      ctx.arc(x, cy, dotR, 0, Math.PI*2);
+      ctx.fillStyle = buyColor;
       ctx.fill();
     }
     if (info.venda > 0) {
-      // Seta para baixo (venda) — acima da mecha superior
-      const tipY  = yOf(data[i].high) - arrowSize - 6;
-      const baseY = tipY - arrowSize * 1.6;
-      ctx.fillStyle = sellColor;
+      const cy = yOf(data[i].high) - dotR - 5;
       ctx.beginPath();
-      ctx.moveTo(x, tipY);
-      ctx.lineTo(x - arrowSize, baseY);
-      ctx.lineTo(x - arrowSize*0.35, baseY);
-      ctx.lineTo(x - arrowSize*0.35, baseY - arrowSize*0.9);
-      ctx.lineTo(x + arrowSize*0.35, baseY - arrowSize*0.9);
-      ctx.lineTo(x + arrowSize*0.35, baseY);
-      ctx.lineTo(x + arrowSize, baseY);
-      ctx.closePath();
+      ctx.arc(x, cy, dotR, 0, Math.PI*2);
+      ctx.fillStyle = sellColor;
       ctx.fill();
     }
   }
 
-  // Tooltip
-  canvas.onmousemove = (e) => {
+  // ── VOL CHART ──
+  const vctx = volCanvas.getContext('2d');
+  const V_PAD_L = PAD_L, V_PAD_R = PAD_R, V_PAD_T = 8, V_PAD_B = 8;
+  const vPlotH = H_VOL - V_PAD_T - V_PAD_B;
+
+  // max vol para escala
+  let maxVol = 0;
+  for (const d of allDates) {
+    const info = porDia[d];
+    if (!info) continue;
+    const total = (info.vol_compra||0) + (info.vol_venda||0);
+    if (total > maxVol) maxVol = total;
+  }
+
+  // Label eixo Y do vol (só topo)
+  if (maxVol > 0) {
+    vctx.fillStyle  = textColor;
+    vctx.font       = '10px system-ui';
+    vctx.textAlign  = 'right';
+    vctx.fillText(fmt(maxVol), V_PAD_L-4, V_PAD_T+8);
+  }
+
+  // Grid linha base
+  vctx.strokeStyle = gridColor;
+  vctx.lineWidth   = 0.5;
+  vctx.beginPath();
+  vctx.moveTo(V_PAD_L, H_VOL-V_PAD_B);
+  vctx.lineTo(W-V_PAD_R, H_VOL-V_PAD_B);
+  vctx.stroke();
+
+  // Barras
+  for (let i=0; i<n; i++) {
+    const d    = allDates[i];
+    const info = porDia[d];
+    if (!info || maxVol === 0) continue;
+    const x = xOf(i);
+    const bW = Math.max(2, candleW);
+
+    if ((info.vol_compra||0) > 0) {
+      const bH = (info.vol_compra / maxVol) * vPlotH;
+      vctx.fillStyle = buyColor;
+      vctx.fillRect(x - bW/2, H_VOL - V_PAD_B - bH, bW, bH);
+    }
+    if ((info.vol_venda||0) > 0) {
+      const bH = (info.vol_venda / maxVol) * vPlotH;
+      // Se tem compra também, empilha acima
+      const compraH = (info.vol_compra||0) > 0 ? (info.vol_compra / maxVol) * vPlotH : 0;
+      vctx.fillStyle = sellColor;
+      vctx.fillRect(x - bW/2, H_VOL - V_PAD_B - bH - compraH, bW, bH);
+    }
+  }
+
+  // ── TOOLTIP ──
+  const tt = document.getElementById('candleTooltip');
+
+  function showTooltip(e, canvas) {
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left) * (W / rect.width);
     const i  = Math.floor((mx - PAD_L) / step);
-    const tt = document.getElementById('candleTooltip');
     if (i < 0 || i >= n) { tt.style.display='none'; return; }
+
     const c    = data[i];
-    const info = gPorDia[c.date] || {};
-    let html = `<strong>${c.date}</strong><br>
-      Abertura: R$${c.open?.toFixed(2)}<br>
-      Máxima:&nbsp;&nbsp;R$${c.high?.toFixed(2)}<br>
-      Mínima:&nbsp;&nbsp;&nbsp;R$${c.low?.toFixed(2)}<br>
-      Fechamento: R$${c.close?.toFixed(2)}`;
-    if (info.compra>0) html += `<br><span style="color:#1D9E75">▲ Compra: ${fmtQtd(info.qtd_compra)} · ${fmt(info.vol_compra)}</span>`;
-    if (info.venda>0)  html += `<br><span style="color:#D85A30">▼ Venda: ${fmtQtd(info.qtd_venda)} · ${fmt(info.vol_venda)}</span>`;
-    tt.innerHTML = html;
-    tt.style.display = 'block';
-    const tx = Math.min(e.clientX - rect.left + 14, rect.width - 185);
-    const ty = Math.max(e.clientY - rect.top - 10, 0);
-    tt.style.left = tx+'px';
-    tt.style.top  = ty+'px';
-  };
-  canvas.onmouseleave = () => { document.getElementById('candleTooltip').style.display='none'; };
-}
+    const info = porDia[c.date] || {};
+    const grps = gPorDiaGrupo[c.date] || {};
 
-window.addEventListener('resize', () => { if (gCandles.length) drawCandles(); });
+    // Monta tooltip
+    let html = `<strong>${c.date}</strong>`;
+    if (c.open) {
+      html += `<br><span style="color:var(--text2)">Abertura: </span>R$${c.open?.toFixed(2)}`;
+      html += `<br><span style="color:var(--text2)">Máxima: </span>R$${c.high?.toFixed(2)}`;
+      html += `<br><span style="color:var(--text2)">Mínima: </span>R$${c.low?.toFixed(2)}`;
+      html += `<br><span style="color:var(--text2)">Fechamento: </span>R$${c.close?.toFixed(2)}`;
+    }
 
-function renderVolChart(candles, porDia) {
-  const allDates = candles.length ? candles.map(c=>c.date) : [...new Set(Object.keys(porDia))].sort();
-  const labels   = allDates.map(d=>d.slice(5));
-  const volBuy   = allDates.map(d => porDia[d]?.vol_compra||null);
-  const volSell  = allDates.map(d => porDia[d]?.vol_venda ||null);
+    if (info.compra > 0 || info.venda > 0) {
+      html += `<hr style="border:none;border-top:0.5px solid var(--border);margin:6px 0">`;
 
-  if (volChart) volChart.destroy();
-  volChart = new Chart(document.getElementById('volChart'), {
-    type:'bar',
-    data:{ labels, datasets:[
-      { label:'Compra', data:volBuy,  backgroundColor:'#1D9E75' },
-      { label:'Venda',  data:volSell, backgroundColor:'#D85A30' },
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => {
-        const d    = allDates[ctx.dataIndex];
-        const info = porDia[d]; if(!info) return '';
-        const tipo = ctx.dataset.label==='Compra'?'compra':'venda';
-        const vol  = tipo==='compra'?info.vol_compra:info.vol_venda;
-        const qtd  = tipo==='compra'?info.qtd_compra:info.qtd_venda;
-        return [`${ctx.dataset.label}`, `Vol: ${fmt(vol)}`, `Qtd: ${fmtQtd(qtd||0)}`];
-      }}}},
-      scales:{
-        x:{ stacked:true, ticks:{ maxTicksLimit:10, font:{size:12} }, grid:{display:false} },
-        y:{ stacked:true, ticks:{ callback:v=>v>=1e6?'R$'+(v/1e6).toFixed(1)+'M':'R$'+(v/1e3).toFixed(0)+'k', font:{size:12} } }
+      if (info.compra > 0) {
+        html += `<div style="color:#1D9E75;font-weight:500">● Compra — ${fmtQtd(info.qtd_compra)} ações · ${fmt(info.vol_compra)}</div>`;
+        // detalhe por grupo
+        for (const [grp, ginfo] of Object.entries(grps)) {
+          if ((ginfo.compra||0) > 0) {
+            html += `<div style="color:var(--text2);font-size:12px;padding-left:10px">${grp}: ${fmtQtd(ginfo.qtd_compra||0)} · ${fmt(ginfo.vol_compra||0)}</div>`;
+          }
+        }
+      }
+      if (info.venda > 0) {
+        html += `<div style="color:#D85A30;font-weight:500">● Venda — ${fmtQtd(info.qtd_venda)} ações · ${fmt(info.vol_venda)}</div>`;
+        for (const [grp, ginfo] of Object.entries(grps)) {
+          if ((ginfo.venda||0) > 0) {
+            html += `<div style="color:var(--text2);font-size:12px;padding-left:10px">${grp}: ${fmtQtd(ginfo.qtd_venda||0)} · ${fmt(ginfo.vol_venda||0)}</div>`;
+          }
+        }
       }
     }
-  });
+
+    tt.innerHTML = html;
+    tt.style.display = 'block';
+
+    // Posição relativa ao wrap
+    const wrapRect = tt.parentElement.getBoundingClientRect();
+    const tx = Math.min(e.clientX - wrapRect.left + 14, wrapRect.width - 220);
+    const ty = Math.max(e.clientY - wrapRect.top - 10, 0);
+    tt.style.left = tx+'px';
+    tt.style.top  = ty+'px';
+  }
+
+  candleCanvas.onmousemove = (e) => showTooltip(e, candleCanvas);
+  candleCanvas.onmouseleave = () => { tt.style.display='none'; };
+  volCanvas.onmousemove = (e) => showTooltip(e, volCanvas);
+  volCanvas.onmouseleave = () => { tt.style.display='none'; };
 }
+
+window.addEventListener('resize', () => { if (gCandles.length) drawCombinedChart(); });
 
 function setStatus(msg) {
   const el = document.getElementById('statusMsg');
