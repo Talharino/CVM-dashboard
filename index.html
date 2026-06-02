@@ -90,31 +90,82 @@
 
   <div id="statusMsg" class="status">Digite o ticker B3 da empresa para começar.</div>
 
-  <div id="metricsTop" class="metrics-top" style="display:none">
-    <div class="metric"><div class="lbl">Empresa</div><div class="val sm" id="mEmpresa">—</div></div>
-    <div class="metric"><div class="lbl">Ticker B3</div><div class="val sm" id="mTicker">—</div></div>
-    <div class="metric"><div class="lbl">Totais</div><div class="val sm" id="mTotal">—</div></div>
-    <div class="metric"><div class="lbl">Volume total</div><div class="val sm" id="mVolume">—</div></div>
-  </div>
+  <div id="metricsAll" style="display:none;flex-direction:column;gap:8px;margin-bottom:1.5rem;">
 
-  <div id="metricsBottom" class="metrics-bottom" style="display:none">
-    <div class="op-card buy-card">
-      <div class="op-header"><span class="badge buy">Compra à vista</span></div>
-      <div class="op-grid">
-        <div class="op-item"><div class="lbl">Operações</div><div class="val buy" id="mCompras">0</div></div>
-        <div class="op-item"><div class="lbl">Quantidade</div><div class="val sm" id="mQtdCompra">—</div></div>
-        <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolCompra">—</div></div>
-        <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmCompra">—</div></div>
+    <div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="text-align:center;padding:9px 0 7px;border-bottom:0.5px solid var(--border);">
+        <span style="font-size:15px;font-weight:500;color:var(--text2);">Resumo</span>
+      </div>
+      <div style="display:flex;align-items:stretch;padding:10px 16px;gap:0;">
+        <div style="display:flex;flex-direction:column;justify-content:center;padding-right:14px;border-right:0.5px solid var(--border);flex-shrink:0;">
+          <span style="font-size:12px;color:var(--text2);">Ticker B3</span>
+          <span style="font-size:15px;font-weight:500;color:var(--text);" id="mTicker">—</span>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:0.5px solid var(--border);flex-shrink:0;">
+          <span style="font-size:12px;color:var(--text2);">Empresa</span>
+          <span style="font-size:14px;font-weight:500;color:var(--text);" id="mEmpresa">—</span>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:0.5px solid var(--border);flex-shrink:0;">
+          <span style="font-size:12px;color:var(--text2);">Totais</span>
+          <span style="font-size:14px;font-weight:500;color:var(--text);" id="mTotal">—</span>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;flex-shrink:0;">
+          <span style="font-size:12px;color:var(--text2);">Vol. total</span>
+          <span style="font-size:14px;font-weight:500;color:var(--text);" id="mVolume">—</span>
+        </div>
       </div>
     </div>
-    <div class="op-card sell-card">
-      <div class="op-header"><span class="badge sell">Venda à vista</span></div>
-      <div class="op-grid">
-        <div class="op-item"><div class="lbl">Operações</div><div class="val sell" id="mVendas">0</div></div>
-        <div class="op-item"><div class="lbl">Quantidade</div><div class="val sm" id="mQtdVenda">—</div></div>
-        <div class="op-item"><div class="lbl">Volume financeiro</div><div class="val sm" id="mVolVenda">—</div></div>
-        <div class="op-item"><div class="lbl">Preço médio</div><div class="val sm" id="mPmVenda">—</div></div>
+
+    <div style="display:flex;gap:8px;">
+
+      <div style="display:flex;flex-direction:column;flex:1;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);overflow:hidden;border-left:3px solid var(--buy);">
+        <div style="text-align:center;padding:9px 0 7px;border-bottom:0.5px solid var(--border);background:rgba(29,158,117,0.10);">
+          <span style="font-size:15px;font-weight:500;color:var(--buy);">Compra</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;padding:10px 16px;gap:20px;">
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Operações</span>
+            <span style="font-size:15px;font-weight:500;color:var(--buy);" id="mCompras">0</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Ações</span>
+            <span style="font-size:15px;color:var(--text);" id="mQtdCompra">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Volume</span>
+            <span style="font-size:15px;color:var(--text);" id="mVolCompra">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Preço médio</span>
+            <span style="font-size:15px;color:var(--text);" id="mPmCompra">—</span>
+          </div>
+        </div>
       </div>
+
+      <div style="display:flex;flex-direction:column;flex:1;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);overflow:hidden;border-left:3px solid var(--sell);">
+        <div style="text-align:center;padding:9px 0 7px;border-bottom:0.5px solid var(--border);background:rgba(216,90,48,0.10);">
+          <span style="font-size:15px;font-weight:500;color:var(--sell);">Venda</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;padding:10px 16px;gap:20px;">
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Operações</span>
+            <span style="font-size:15px;font-weight:500;color:var(--sell);" id="mVendas">0</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Ações</span>
+            <span style="font-size:15px;color:var(--text);" id="mQtdVenda">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Volume</span>
+            <span style="font-size:15px;color:var(--text);" id="mVolVenda">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;flex-shrink:0;">
+            <span style="font-size:12px;color:var(--text2);">Preço médio</span>
+            <span style="font-size:15px;color:var(--text);" id="mPmVenda">—</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -192,7 +243,7 @@ async function buscar() {
   if (!tickerRaw) { setStatus('Informe o ticker B3 da empresa.'); return; }
 
   setStatus('Buscando ticker...');
-  ['metricsTop','metricsBottom','chartArea'].forEach(id => document.getElementById(id).style.display='none');
+  ['metricsAll','chartArea'].forEach(id => document.getElementById(id).style.display='none');
 
   try {
     // Se não temos cvm já selecionado, buscar pelo ticker
@@ -290,9 +341,8 @@ function renderMetrics(d) {
   document.getElementById('mVolVenda').textContent  = fmt(volV);
   document.getElementById('mPmVenda').textContent   = pmV>0?'R$ '+pmV.toFixed(2):'—';
 
-  document.getElementById('metricsTop').style.display    = 'grid';
-  document.getElementById('metricsBottom').style.display = 'grid';
-  document.getElementById('chartArea').style.display     = 'block';
+  document.getElementById('metricsAll').style.display = 'flex';
+  document.getElementById('chartArea').style.display  = 'block';
 }
 
 function drawCombinedChart() {
