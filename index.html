@@ -490,7 +490,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
   rowEl.classList.add('ativo');
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
-  expRow.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(()=>{ const r=expRow.getBoundingClientRect(); if(r.bottom>window.innerHeight) window.scrollBy({top:r.bottom-window.innerHeight+20,behavior:'smooth'}); },100);
 
   // Se já tem dados carregados, desenha direto
   if(rowEl._candles!==null && rowEl._movData && rowEl._movData.por_dia){
@@ -516,15 +516,22 @@ async function toggleExpandir(ticker, cvm, rowEl){
     rowEl._movData = mov;
     rowEl._candles = candles;
 
-    // Atualiza colunas com % reais
-    while(rowEl.children.length>1) rowEl.removeChild(rowEl.lastChild);
-    if(rowEl._viewData){
-      rowEl.insertAdjacentHTML('beforeend', buildColsFromView(rowEl._viewData, candles));
-    } else {
-      rowEl.insertAdjacentHTML('beforeend', buildCols(mov, candles));
-    }
-
     drawInlineChart(ticker, candles, mov?.por_dia||{});
+    // Atualiza % diretamente nas células sem destruir a linha
+    if(rowEl._viewData && candles.length){
+      const d=rowEl._viewData;
+      const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
+      const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
+      const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
+      const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
+      const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
+      if(cells.length>=12){
+        if(tQ>0&&qC>0) cells[4].innerHTML=`<span class="v-pctb">${((qC/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
+        if(tV>0&&vC>0) cells[5].innerHTML=`<span class="v-pctb">${((vC/tV)*100).toFixed(2).replace('.',',')}%</span>`;
+        if(tQ>0&&qV>0) cells[10].innerHTML=`<span class="v-pcts">${((qV/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
+        if(tV>0&&vV>0) cells[11].innerHTML=`<span class="v-pcts">${((vV/tV)*100).toFixed(2).replace('.',',')}%</span>`;
+      }
+    }
   } catch(e){ console.error('toggleExpandir erro:',e); }
 }
 
