@@ -289,7 +289,7 @@ async function buscarTop30(){
   const lbl=document.getElementById('activeLabel');
   document.getElementById('activeLabelText').textContent='Top 30 ações com mais movimentações em 2026';
   lbl.style.display='block';
-  carregarLote(tickers);
+  carregarTabelaView(tickers, setor);
 }
 
 async function buscarPorSetor(setor){
@@ -305,7 +305,7 @@ async function buscarPorSetor(setor){
     document.getElementById('chartArea').style.display='block';
     document.getElementById('chartSection').style.display='none';
     // active label
-    carregarLote(tickers);
+    carregarTabelaView(tickers, setor);
   } catch(e){setStatus('Erro: '+e.message);}
 }
 
@@ -341,40 +341,76 @@ function renderSetorTabela(setor,tickers){
   setTimeout(setupStickyThead, 100);
 }
 
-async function carregarLinhaTabela(t){
-  try {
-    // Carrega só movimentacoes — cotacao carrega apenas ao expandir
-    const mov=await (await fetch(`${FN}/movimentacoes?cvm=${t.codigo_cvm}&from=2026-01-01`)).json();
-    const row=document.getElementById(`row-${t.ticker_b3}`);
-    if(!row) return;
-    while(row.children.length>1) row.removeChild(row.lastChild);
-    const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
-    if(totC===0 && totV===0){
-      row.style.display='none';
-      const expRow=document.getElementById(`exp-${t.ticker_b3}`);
-      if(expRow) expRow.style.display='none';
-      return;
-    }
-    row.style.display='';
-    // Na tabela usa candles vazio — % serão calculados ao expandir
-    row.insertAdjacentHTML('beforeend', buildCols(mov, []));
-    row._movData=mov; row._candles=null;
-    const tot=totC+totV;
-    row._totalOps=tot;
-    reordenarTabela();
-  } catch(e){
-    const row=document.getElementById(`row-${t.ticker_b3}`);
-    if(row){ while(row.children.length>1) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
+// Carrega todos os dados da tabela em UMA única chamada à view do Supabase
+async function carregarTabelaView(tickers, setor){
+  // monta filtro: lista de tickers ou setor
+  let url;
+  if(setor==='TOP30'){
+    const lista=tickers.map(t=>t.ticker_b3).join(',');
+    url=`${FN}/resumo?tickers=${encodeURIComponent(lista)}`;
+  } else {
+    url=`${FN}/resumo?setor=${encodeURIComponent(setor)}`;
   }
+  try {
+    const r=await fetch(url);
+    const rows=await r.json();
+    // Mapeia por ticker para acesso rápido
+    const byTicker={};
+    rows.forEach(r=>byTicker[r.ticker_b3]=r);
+    // Preenche cada linha da tabela
+    tickers.forEach(t=>{
+      const row=document.getElementById(`row-${t.ticker_b3}`);
+      if(!row) return;
+      while(row.children.length>1) row.removeChild(row.lastChild);
+      const d=byTicker[t.ticker_b3];
+      if(!d||((d.total_compras||0)===0&&(d.total_vendas||0)===0)){
+        row.style.display='none';
+        const expRow=document.getElementById(`exp-${t.ticker_b3}`);
+        if(expRow) expRow.style.display='none';
+        return;
+      }
+      row.style.display='';
+      // Constrói objeto compatível com buildCols
+      const mov={
+        totais:{compra:d.total_compras||0, venda:d.total_vendas||0},
+        por_dia:{},
+        ticker_yahoo:d.ticker_yahoo
+      };
+      // Injeta dados agregados diretamente
+      row.insertAdjacentHTML('beforeend', buildColsFromView(d));
+      row._movData=mov; row._candles=null; row._viewData=d;
+      row._totalOps=(d.total_compras||0)+(d.total_vendas||0);
+    });
+    reordenarTabela();
+  } catch(e){ console.error('Erro carregarTabelaView:',e); }
 }
 
-// Carrega em lotes para não sobrecarregar
-async function carregarLote(tickers, loteSize=5){
-  for(let i=0;i<tickers.length;i+=loteSize){
-    const lote=tickers.slice(i,i+loteSize);
-    await Promise.all(lote.map(t=>carregarLinhaTabela(t)));
-  }
+function buildColsFromView(d){
+  const dash='<span class="v-dash">—</span>';
+  const hC=(d.total_compras||0)>0, hV=(d.total_vendas||0)>0;
+  const pmC=hC&&d.preco_medio_compra?'R$'+parseFloat(d.preco_medio_compra).toFixed(2):dash;
+  const pmV=hV&&d.preco_medio_venda?'R$'+parseFloat(d.preco_medio_venda).toFixed(2):dash;
+  const volC=hC?fmt(parseFloat(d.vol_compra)||0):dash;
+  const volV=hV?fmt(parseFloat(d.vol_venda)||0):dash;
+  const qtdC=hC?fmtQtd(parseInt(d.qtd_compra)||0):dash;
+  const qtdV=hV?fmtQtd(parseInt(d.qtd_venda)||0):dash;
+  return `
+    <td class="td-b">${hC?`<span class="v-buy">${d.total_compras}</span>`:dash}</td>
+    <td class="td-b">${qtdC}</td>
+    <td class="td-b">${volC}</td>
+    <td class="td-b">${pmC}</td>
+    <td class="td-b"><span class="v-dash">—</span></td>
+    <td class="td-b td-sep"><span class="v-dash">—</span></td>
+    <td class="td-s">${hV?`<span class="v-sell">${d.total_vendas}</span>`:dash}</td>
+    <td class="td-s">${qtdV}</td>
+    <td class="td-s">${volV}</td>
+    <td class="td-s">${pmV}</td>
+    <td class="td-s"><span class="v-dash">—</span></td>
+    <td class="td-s"><span class="v-dash">—</span></td>`;
 }
+
+async function carregarLinhaTabela(t){ await carregarTabelaView([t],''); }
+async function carregarLote(tickers){ await carregarTabelaView(tickers,''); }
 
 function buildCols(mov, candles){
   const t=mov.totais||{};
