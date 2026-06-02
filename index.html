@@ -490,7 +490,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
   rowEl.classList.add('ativo');
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
-  setTimeout(()=>{ const r=expRow.getBoundingClientRect(); if(r.bottom>window.innerHeight) window.scrollBy({top:r.bottom-window.innerHeight+20,behavior:'smooth'}); },100);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const r=expRow.getBoundingClientRect(); const topFixed=document.getElementById('topFixed'); const fh=topFixed?topFixed.offsetHeight:0; if(r.bottom>window.innerHeight) window.scrollBy({top:r.bottom-window.innerHeight+40,behavior:'smooth'}); }));
 
   // Se já tem dados carregados, desenha direto
   if(rowEl._candles!==null && rowEl._movData && rowEl._movData.por_dia){
@@ -525,6 +525,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
       const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
       const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
       const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
+      console.log('cells count:',cells.length,'tQ:',tQ,'tV:',tV,'qC:',qC,'vC:',vC);
       if(cells.length>=12){
         if(tQ>0&&qC>0) cells[4].innerHTML=`<span class="v-pctb">${((qC/tQ)*100).toFixed(2).replace('.',',')}%</span>`;
         if(tV>0&&vC>0) cells[5].innerHTML=`<span class="v-pctb">${((vC/tV)*100).toFixed(2).replace('.',',')}%</span>`;
