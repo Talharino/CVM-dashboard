@@ -378,7 +378,27 @@ async function carregarTabelaView(tickers, setor){
       row._totalOps=(d.total_compras||0)+(d.total_vendas||0);
     });
     reordenarTabela();
+    // Carrega candles em background para calcular % de todos os tickers
+    carregarCandlesBackground(tickers.filter(t=>document.getElementById(`row-${t.ticker_b3}`)?.style.display!=='none'));
   } catch(e){ console.error('Erro carregarTabelaView:',e); }
+}
+
+async function carregarCandlesBackground(tickers){
+  for(const t of tickers){
+    const row=document.getElementById(`row-${t.ticker_b3}`);
+    if(!row||!row._viewData) continue;
+    const tickerYahoo=row._viewData.ticker_yahoo;
+    if(!tickerYahoo) continue;
+    try {
+      const c=await fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=2026-01-01`).then(r=>r.json());
+      if(c.candles&&c.candles.length){
+        row._candles=c.candles;
+        atualizarPct(row);
+      }
+    } catch(e){}
+    // pequena pausa entre cada request para não sobrecarregar
+    await new Promise(r=>setTimeout(r,200));
+  }
 }
 
 function buildColsFromView(d, candles){
