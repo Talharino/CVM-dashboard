@@ -21,8 +21,7 @@
     #topFixed { position:sticky; top:0; z-index:100; background:var(--bg); }
     header { background:var(--bg); border-bottom:0.5px solid var(--border); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
     header h1 { font-size:17px; font-weight:600; }
-    body { overflow:hidden; height:100vh; display:flex; flex-direction:column; }
-    main { padding:12px 16px; max-width:1200px; margin:0 auto; width:100%; flex:1; overflow-y:auto; display:flex; flex-direction:column; min-height:0; }
+    main { padding:12px 16px; max-width:1200px; margin:0 auto; }
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; }
@@ -71,10 +70,10 @@
     /* SETOR TABLE */
     .setor-wrap { background:var(--bg2); border-radius:var(--radius); border:0.5px solid var(--border); overflow:hidden; margin-bottom:12px; }
     .setor-caption { padding:10px 14px; font-size:15px; font-weight:500; color:var(--text2); border-bottom:0.5px solid var(--border); }
-    .setor-table-scroll { overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 200px); }
+    .setor-table-scroll { overflow-x:auto; }
     .setor-table { width:100%; border-collapse:collapse; font-size:14px; white-space:nowrap; }
-    .setor-table thead tr:first-child th { padding:9px 12px; font-size:14px; font-weight:500; border-bottom:0.5px solid var(--border); position:sticky; top:0; background:var(--bg2); z-index:2; }
-    .setor-table thead tr:last-child th { padding:6px 10px; font-size:12px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:44px; background:var(--bg2); z-index:2; }
+    .setor-table thead tr:first-child th { padding:9px 12px; font-size:14px; font-weight:500; border-bottom:0.5px solid var(--border); }
+    .setor-table thead tr:last-child th { padding:6px 10px; font-size:12px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
