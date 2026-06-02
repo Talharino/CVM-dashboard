@@ -18,10 +18,11 @@
       :root { --bg:#fff; --bg2:#f5f5f3; --bg3:#eeede8; --text:#1a1a18; --text2:#6b6b67; --border:rgba(0,0,0,0.12); }
     }
     body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:15px; background:var(--bg); color:var(--text); min-height:100vh; }
-    header { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:0.5px solid var(--border); padding:12px 16px; display:flex; align-items:center; gap:10px; }
-    header h1 { font-size:18px; font-weight:600; }
-    header span { font-size:12px; color:var(--text2); background:var(--bg2); padding:2px 8px; border-radius:20px; }
-    main { padding:12px 16px; max-width:1200px; margin:0 auto; }
+    #topFixed { position:sticky; top:0; z-index:100; background:var(--bg); }
+    header { background:var(--bg); border-bottom:0.5px solid var(--border); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+    header h1 { font-size:17px; font-weight:600; }
+    body { overflow:hidden; height:100vh; display:flex; flex-direction:column; }
+    main { padding:12px 16px; max-width:1200px; margin:0 auto; width:100%; flex:1; overflow-y:auto; display:flex; flex-direction:column; min-height:0; }
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; }
@@ -69,11 +70,11 @@
 
     /* SETOR TABLE */
     .setor-wrap { background:var(--bg2); border-radius:var(--radius); border:0.5px solid var(--border); overflow:hidden; margin-bottom:12px; }
-    .setor-caption { padding:10px 14px; font-size:13px; font-weight:500; color:var(--text2); border-bottom:0.5px solid var(--border); }
-    .setor-table-scroll { overflow-x:auto; }
-    .setor-table { width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap; }
-    .setor-table thead tr:first-child th { padding:8px 10px; font-size:12px; font-weight:500; border-bottom:0.5px solid var(--border); }
-    .setor-table thead tr:last-child th { padding:5px 8px; font-size:10px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); }
+    .setor-caption { padding:10px 14px; font-size:15px; font-weight:500; color:var(--text2); border-bottom:0.5px solid var(--border); }
+    .setor-table-scroll { overflow-x:auto; overflow-y:auto; max-height:calc(100vh - 200px); }
+    .setor-table { width:100%; border-collapse:collapse; font-size:14px; white-space:nowrap; }
+    .setor-table thead tr:first-child th { padding:9px 12px; font-size:14px; font-weight:500; border-bottom:0.5px solid var(--border); position:sticky; top:0; background:var(--bg2); z-index:2; }
+    .setor-table thead tr:last-child th { padding:6px 10px; font-size:12px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:44px; background:var(--bg2); z-index:2; }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
@@ -84,11 +85,11 @@
     .setor-table tbody tr.data-row.ativo .td-ticker-val { color:var(--line); }
     .setor-table tbody tr.data-row.ativo .chevron { transform:rotate(90deg); color:var(--line); }
     .td-ticker { padding:10px 12px; border-right:0.5px solid var(--border); vertical-align:middle; }
-    .td-ticker-val { font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px; }
-    .td-ticker-sub { font-size:10px; color:var(--text2); margin-top:1px; }
+    .td-ticker-val { font-size:15px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px; }
+    .td-ticker-sub { font-size:12px; color:var(--text2); margin-top:1px; }
     .chevron { font-size:10px; color:var(--text2); transition:transform 0.2s; display:inline-block; }
-    .td-b { padding:7px 9px; text-align:right; background:rgba(29,158,117,0.03); color:var(--text); font-size:12px; }
-    .td-s { padding:7px 9px; text-align:right; background:rgba(216,90,48,0.03); color:var(--text); font-size:12px; }
+    .td-b { padding:8px 11px; text-align:right; background:rgba(29,158,117,0.03); color:var(--text); font-size:14px; }
+    .td-s { padding:8px 11px; text-align:right; background:rgba(216,90,48,0.03); color:var(--text); font-size:14px; }
     .td-sep { border-right:0.5px solid var(--border) !important; }
     .v-buy { color:var(--buy); font-weight:500; }
     .v-sell { color:var(--sell); font-weight:500; }
@@ -107,24 +108,51 @@
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
     /* MENU BAR */
-    .menubar { display:flex; align-items:center; justify-content:center; gap:0; border-bottom:0.5px solid var(--border); background:var(--bg); overflow-x:auto; scrollbar-width:none; position:sticky; top:53px; z-index:99; }
+    .menubar { display:flex; align-items:center; justify-content:center; gap:0; border-bottom:0.5px solid var(--border); background:var(--bg); overflow-x:auto; scrollbar-width:none; }
     .menubar::-webkit-scrollbar { display:none; }
-    .menu-item { padding:11px 16px; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; flex-shrink:0; }
+    .menu-item { padding:11px 18px; font-size:15px; font-weight:500; color:var(--text2); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; flex-shrink:0; }
     .menu-item:hover { color:var(--text); }
     .menu-item.on { color:var(--line); border-bottom-color:var(--line); }
-    .active-label { font-size:12px; color:var(--text2); padding:7px 16px; border-bottom:0.5px solid var(--border); background:var(--bg2); display:none; text-align:center; }
+    .active-label { font-size:13px; color:var(--text2); padding:7px 16px; border-bottom:0.5px solid var(--border); background:var(--bg2); display:none; text-align:center; }
     .active-label span { color:var(--line); font-weight:500; }
 
     footer { text-align:center; padding:1.5rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:1rem; }
   </style>
 </head>
 <body>
-<header>
-  <h1>CVM Dashboard</h1>
-  <span>Insiders B3</span>
-</header>
-<div class="menubar" id="menubar"></div>
-<div class="active-label" id="activeLabel">Exibindo: <span id="activeLabelText"></span></div>
+<div id="topFixed">
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg width="38" height="32" viewBox="0 0 64 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="18" cy="46" rx="14" ry="4" fill="#1a4a6b" opacity="0.4"/>
+        <path d="M6 44 Q10 41 14 44 Q18 47 22 44 Q26 41 30 44" stroke="#2a7ab0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M8 38 C6 30 8 18 18 12 C26 7 36 8 40 14 C44 19 42 26 38 30 C34 34 26 36 20 38 C16 39 10 40 8 38Z" fill="#1a2e4a"/>
+        <path d="M22 20 C24 17 30 16 33 20 C35 23 33 28 29 29 C25 30 21 27 22 20Z" fill="#e8e8e8" opacity="0.9"/>
+        <circle cx="30" cy="18" r="2" fill="#e8e8e8"/>
+        <circle cx="30.8" cy="17.2" r="0.8" fill="#1a2e4a"/>
+        <path d="M24 12 C26 4 32 2 34 8 C35 11 32 14 28 14Z" fill="#1a2e4a"/>
+        <path d="M8 36 C4 34 2 28 6 26 C8 25 10 28 10 30" fill="#1a2e4a"/>
+        <path d="M6 26 C3 22 4 16 8 18 C10 19 10 24 10 26" fill="#152438"/>
+        <path d="M20 30 C16 34 10 38 8 38 C10 34 16 30 20 28Z" fill="#152438"/>
+        <path d="M42 10 Q48 14 48 20" stroke="#1D9E75" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M44 6 Q53 12 53 22" stroke="#1D9E75" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <path d="M46 2 Q58 10 58 24" stroke="#1D9E75" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.45"/>
+        <path d="M42 30 Q48 26 48 20" stroke="#D85A30" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M44 34 Q53 28 53 22" stroke="#D85A30" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <path d="M46 38 Q58 30 58 24" stroke="#D85A30" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.45"/>
+      </svg>
+      <div>
+        <h1>Sonar Capital</h1>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px;">Movimentações de insiders</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border);font-size:12px;color:var(--text2);">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--buy);flex-shrink:0;"></span> 2026
+    </div>
+  </header>
+  <div class="menubar" id="menubar"></div>
+  <div class="active-label" id="activeLabel">Exibindo: <span id="activeLabelText"></span></div>
+</div>
 <main>
   <div id="statusMsg" class="status">Selecione um setor para começar.</div>
 
