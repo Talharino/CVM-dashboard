@@ -96,10 +96,9 @@
     .v-pcts { color:var(--sell); font-weight:500; }
     .v-dash { color:rgba(255,255,255,0.12); }
 
-    /* EXPAND ROW */
-    .expand-row td { padding:0; background:#161614; border-bottom:0.5px solid var(--border); }
-    .expand-inner { padding:10px 14px; }
-    .inline-chart { background:var(--bg2); border-radius:8px; border:0.5px solid var(--border); padding:10px; }
+    .expand-row td { padding:0; background:var(--bg); border-bottom:0.5px solid var(--border); }
+    .expand-inner { padding:0; }
+    .inline-chart { background:var(--bg2); padding:10px 12px; border-top:0.5px solid var(--border); }
     .inline-legend { display:flex; gap:12px; margin-bottom:8px; font-size:11px; color:var(--text2); }
     .inline-legend span { display:flex; align-items:center; gap:4px; }
 
@@ -161,7 +160,7 @@
   </div>
 
   <div id="chartArea" style="display:none">
-    <div class="chart-section">
+    <div id="chartSection" class="chart-section">
       <div class="legend">
         <span><span class="dot" style="background:var(--buy)"></span>Compra Interna</span>
         <span><span class="dot" style="background:var(--sell)"></span>Venda Interna</span>
@@ -258,6 +257,7 @@ async function buscarPorSetor(setor){
     renderSetorTabela(setor,tickers);
     document.getElementById('statusMsg').style.display='none';
     document.getElementById('chartArea').style.display='block';
+    document.getElementById('chartSection').style.display='none';
     for(const t of tickers) carregarLinhaTabela(t);
   } catch(e){setStatus('Erro: '+e.message);}
 }
@@ -304,6 +304,10 @@ async function carregarLinhaTabela(t){
     while(row.children.length>1) row.removeChild(row.lastChild);
     row.insertAdjacentHTML('beforeend', buildCols(mov, candles));
     row._movData=mov; row._candles=candles;
+    // guarda total de operações para ranking
+    const tot=(mov.totais?.compra||0)+(mov.totais?.venda||0);
+    row._totalOps=tot;
+    reordenarTabela();
   } catch(e){
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(row){ while(row.children.length>1) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
@@ -341,6 +345,26 @@ function buildEmptyCols(){
   const d='<span class="v-dash">—</span>';
   return `<td class="td-b">${d}</td><td class="td-b">${d}</td><td class="td-b">${d}</td><td class="td-b">${d}</td><td class="td-b">${d}</td><td class="td-b td-sep">${d}</td>
           <td class="td-s">${d}</td><td class="td-s">${d}</td><td class="td-s">${d}</td><td class="td-s">${d}</td><td class="td-s">${d}</td><td class="td-s">${d}</td>`;
+}
+
+function reordenarTabela(){
+  const tbody=document.getElementById('setorTbody');
+  if(!tbody) return;
+  const rows=[];
+  let i=0;
+  while(i<tbody.children.length){
+    const r=tbody.children[i];
+    if(r.classList.contains('data-row')){
+      const expRow=tbody.children[i+1];
+      rows.push({dataRow:r, expRow: expRow&&expRow.classList.contains('expand-row')?expRow:null, ops:r._totalOps||0});
+      i+=expRow&&expRow.classList.contains('expand-row')?2:1;
+    } else { i++; }
+  }
+  rows.sort((a,b)=>b.ops-a.ops);
+  rows.forEach(({dataRow,expRow})=>{
+    tbody.appendChild(dataRow);
+    if(expRow) tbody.appendChild(expRow);
+  });
 }
 
 async function toggleExpandir(ticker, cvm, rowEl){
@@ -575,6 +599,7 @@ function renderMetrics(d,candles){
   document.getElementById('mPctVolVenda').textContent=pVV;
   document.getElementById('metricsAll').style.display='flex';
   document.getElementById('chartArea').style.display='block';
+  document.getElementById('chartSection').style.display='block';
 }
 
 function drawMainChart(){
