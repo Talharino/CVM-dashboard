@@ -106,6 +106,15 @@
     .skel { display:inline-block; background:rgba(255,255,255,0.07); border-radius:4px; animation:pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
+    /* MENU BAR */
+    .menubar { display:flex; align-items:center; gap:0; border-bottom:0.5px solid var(--border); background:var(--bg); overflow-x:auto; scrollbar-width:none; position:sticky; top:53px; z-index:99; }
+    .menubar::-webkit-scrollbar { display:none; }
+    .menu-item { padding:11px 16px; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; flex-shrink:0; }
+    .menu-item:hover { color:var(--text); }
+    .menu-item.on { color:var(--line); border-bottom-color:var(--line); }
+    .active-label { font-size:12px; color:var(--text2); padding:7px 16px; border-bottom:0.5px solid var(--border); background:var(--bg2); display:none; }
+    .active-label span { color:var(--line); font-weight:500; }
+
     footer { text-align:center; padding:1.5rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:1rem; }
   </style>
 </head>
@@ -114,17 +123,10 @@
   <h1>CVM Dashboard</h1>
   <span>Insiders B3</span>
 </header>
+<div class="menubar" id="menubar"></div>
+<div class="active-label" id="activeLabel">Exibindo: <span id="activeLabelText"></span></div>
 <main>
-  <div class="search-card">
-    <div class="search-row">
-      <input type="text" id="tickerInput" placeholder="Ticker B3 (ex: ABEV3, PETR4)..." autocomplete="off"/>
-      <select id="setorSelect"><option value="">Filtrar por setor...</option></select>
-      <button onclick="buscar()">Buscar</button>
-    </div>
-    <div id="sugBox" class="sug-box"></div>
-  </div>
-
-  <div id="statusMsg" class="status">Digite o ticker B3 ou selecione um setor para começar.</div>
+  <div id="statusMsg" class="status">Selecione um setor para começar.</div>
 
   <div id="metricsAll" style="display:none" class="metrics-bar">
     <div class="m-ticker">
@@ -202,49 +204,31 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const FN=`${SUPA_URL}/functions/v1`;
 const HDR={apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`};
 
-let gCandles=[], gPorDia={}, gPorDiaGrupo={}, gCvmSelecionado=null;
-let gTickerExpandido=null, debTimer=null;
+let gCandles=[], gPorDia={}, gPorDiaGrupo={};
+let gTickerExpandido=null;
 
-const tickerInput=document.getElementById('tickerInput');
-const setorSelect=document.getElementById('setorSelect');
-
+// Carrega setores no menu
 (async()=>{
   try {
     const r=await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=setor&setor=not.is.null&order=setor`,{headers:HDR});
     const data=await r.json();
-    [...new Set(data.map(d=>d.setor).filter(Boolean))].sort().forEach(s=>{
-      const o=document.createElement('option'); o.value=s; o.textContent=s; setorSelect.appendChild(o);
+    const setores=[...new Set(data.map(d=>d.setor).filter(Boolean))].sort();
+    const menubar=document.getElementById('menubar');
+    setores.forEach(s=>{
+      const el=document.createElement('div');
+      el.className='menu-item';
+      el.textContent=s;
+      el.onclick=()=>selecionarSetor(s,el);
+      menubar.appendChild(el);
     });
   } catch(e){}
 })();
 
-setorSelect.addEventListener('change',async function(){
-  const s=this.value; if(!s) return;
-  tickerInput.value=''; hideSug();
-  await buscarPorSetor(s);
-});
-tickerInput.addEventListener('input',function(){
-  clearTimeout(debTimer);
-  const v=this.value.trim().toUpperCase();
-  if(v.length<2){hideSug();return;}
-  debTimer=setTimeout(()=>searchTicker(v),350);
-});
-tickerInput.addEventListener('keydown',e=>{if(e.key==='Enter'){hideSug();buscar();}});
-
-async function searchTicker(q){
-  try {
-    const r=await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=codigo_cvm,nome_companhia,ticker_b3&ticker_b3=ilike.${encodeURIComponent(q)}*&limit=8`,{headers:HDR});
-    showSug(await r.json());
-  } catch(e){}
+function selecionarSetor(setor, el){
+  document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on');
+  buscarPorSetor(setor);
 }
-function showSug(items){
-  const box=document.getElementById('sugBox');
-  if(!items||!items.length){box.style.display='none';return;}
-  box.innerHTML=items.map(d=>`<div class="sug-item" onclick="selectTicker('${d.ticker_b3}','${d.codigo_cvm}')"><strong>${d.ticker_b3}</strong> — ${d.nome_companhia}</div>`).join('');
-  box.style.display='block';
-}
-function hideSug(){document.getElementById('sugBox').style.display='none';}
-function selectTicker(ticker,cvm){tickerInput.value=ticker;gCvmSelecionado=cvm;setorSelect.value='';hideSug();buscar();}
 
 async function buscarPorSetor(setor){
   setStatus('Buscando tickers do setor...');
@@ -258,6 +242,10 @@ async function buscarPorSetor(setor){
     document.getElementById('statusMsg').style.display='none';
     document.getElementById('chartArea').style.display='block';
     document.getElementById('chartSection').style.display='none';
+    // active label
+    const lbl=document.getElementById('activeLabel');
+    document.getElementById('activeLabelText').textContent=`${setor} — ${tickers.length} ticker${tickers.length>1?'s':''}`;
+    lbl.style.display='block';
     for(const t of tickers) carregarLinhaTabela(t);
   } catch(e){setStatus('Erro: '+e.message);}
 }
@@ -529,7 +517,7 @@ function drawInlineChart(ticker, data, porDia){
   vc.onmouseleave=()=>tt.style.display='none';
 }
 
-async function buscar(){
+async function buscar_unused(){
   const tickerRaw=tickerInput.value.trim().toUpperCase();
   if(!tickerRaw){setStatus('Informe o ticker B3.');return;}
   setStatus(`Buscando ${tickerRaw}...`);
@@ -635,7 +623,7 @@ function drawMainChart(){
   const tt=document.getElementById('candleTooltip');
   function fmtPct(v){return v.toFixed(2).replace('.',',')+'%';}
   function rT(l,v,c){const s=c?`style="color:${c};font-weight:500"`:'';return `<tr><td style="color:var(--text2);padding:2px 0;white-space:nowrap;font-size:12px">${l}</td><td ${s} style="text-align:right;white-space:nowrap;padding:2px 0 2px 6px;font-size:12px">${v}</td></tr>`;}
-  function rS(l,v,c){const s=c?`style="color:${c};font-weight:500"`:'';return `<tr><td style="color:var(--text2);padding:1px 0 1px 10px;font-size:11px;white-space:nowrap">${l}</td><td ${s} style="text-align:right;white-space:nowrap;padding:1px 0 1px 4px;font-size:11px">${v}</td></tr>`;}
+  function rS(l,v,c){const s=c?`style="color:${c};font-weight:500"`:'';return `<tr><td style="color:var(--text2);padding:1px 0 1px 10px;font-size:11px;white-space:nowrap;width:55%">${l}</td><td ${s} style="text-align:right;padding:1px 0;font-size:11px;white-space:nowrap">${v}</td></tr>`;}
   function dv(){return `<tr><td colspan="2" style="padding:4px 0 2px;border-top:0.5px solid var(--border)"></td></tr>`;}
   function showTip(clientX,clientY,canvas){
     const rect=canvas.getBoundingClientRect(),mx=(clientX-rect.left)*(W/rect.width),i=Math.floor((mx-PL)/step);
@@ -646,7 +634,7 @@ function drawMainChart(){
     const vC=vP===null?'':(vP>=0?'#1D9E75':'#D85A30');
     const vS=vP!==null?((vP>=0?'+':'')+vP.toFixed(2).replace('.',',')+' %'):'—';
     const dS=c.date?c.date.split('-').reverse().join('/'):'';
-    let html=`<div style="font-weight:500;font-size:13px;text-align:center;margin-bottom:6px">${dS}</div><table style="width:100%;border-collapse:collapse">`;
+    let html=`<div style="font-weight:500;font-size:13px;text-align:center;margin-bottom:6px">${dS}</div><table style="width:100%;border-collapse:collapse;table-layout:fixed">`;
     if(c.open)html+=rT('Abertura','R$'+c.open.toFixed(2));
     if(c.close)html+=rT('Fechamento','R$'+c.close.toFixed(2));
     if(vP!==null)html+=rT('Variação',vS,vC);
