@@ -77,8 +77,8 @@
     .setor-table .col-vol { width:80px; }
     .setor-table .col-pm { width:80px; }
     .setor-table .col-pct { width:70px; }
-    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); }
-    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); }
+    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); position:sticky; top:88px; z-index:5; background:var(--bg2); }
+    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); position:sticky; top:125px; z-index:5; background:var(--bg2); }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
@@ -335,7 +335,6 @@ function renderSetorTabela(setor,tickers){
     </tr>
   `).join('');
   document.getElementById('setorWrap').style.display='block';
-  setTimeout(setupStickyThead, 100);
 }
 
 // Carrega todos os dados da tabela em UMA única chamada à view do Supabase
@@ -528,15 +527,15 @@ async function toggleExpandir(ticker, cvm, rowEl){
 }
 
 function scrollParaExpand(expRow){
-  requestAnimationFrame(()=>{
+  // Aguarda o layout ser recalculado antes de checar posição
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const r=expRow.getBoundingClientRect();
-    const topH=document.getElementById('topFixed')?.offsetHeight||0;
-    if(r.top < topH) {
-      window.scrollBy({top: r.top - topH - 8, behavior:'smooth'});
-    } else if(r.bottom > window.innerHeight) {
+    const topH=(document.getElementById('topFixed')?.offsetHeight||0)+40;
+    // Só rola para baixo se o expand saiu da tela
+    if(r.bottom > window.innerHeight){
       window.scrollBy({top: r.bottom - window.innerHeight + 40, behavior:'smooth'});
     }
-  });
+  }));
 }
 
 function atualizarPct(rowEl){
@@ -819,56 +818,6 @@ function drawMainChart(){
   vc.onmouseleave=()=>tt.style.display='none';
 }
 
-
-// STICKY THEAD
-function setupStickyThead() {
-  const wrap = document.getElementById('setorWrap');
-  const table = wrap ? wrap.querySelector('.setor-table') : null;
-  if (!wrap || !table) return;
-
-  // Remove clone anterior se existir
-  const old = document.getElementById('stickyThead');
-  if (old) old.remove();
-
-  const thead = table.querySelector('thead');
-  if (!thead) return;
-
-  // Cria tabela clone com o thead
-  const clone = document.createElement('table');
-  clone.id = 'stickyThead';
-  clone.className = 'setor-table';
-  clone.style.cssText = 'position:fixed;top:-200px;z-index:50;pointer-events:none;border-collapse:collapse;font-size:13px;white-space:nowrap;background:var(--bg2);border-bottom:0.5px solid var(--border);transition:top 0s;';
-  clone.appendChild(thead.cloneNode(true));
-  document.body.appendChild(clone);
-
-  // Ajusta larguras das colunas para coincidir
-  function syncWidths() {
-    const origCols = thead.querySelectorAll('th');
-    const cloneCols = clone.querySelectorAll('th');
-    origCols.forEach((th, i) => {
-      if (cloneCols[i]) cloneCols[i].style.width = th.offsetWidth + 'px';
-    });
-    clone.style.width = table.offsetWidth + 'px';
-    clone.style.left = table.getBoundingClientRect().left + 'px';
-  }
-
-  function onScroll() {
-    const theadRect = thead.getBoundingClientRect();
-    const topFixed = document.getElementById('topFixed');
-    const fixedH = topFixed ? topFixed.offsetHeight : 0;
-    syncWidths();
-    if (theadRect.top < fixedH) {
-      clone.style.top = fixedH + 'px';
-      clone.style.pointerEvents = 'none';
-    } else {
-      clone.style.top = '-200px';
-    }
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', ()=>{ syncWidths(); onScroll(); });
-  onScroll();
-}
 
 window.addEventListener('resize',()=>{if(gCandles.length)drawMainChart();});
 function setStatus(msg){const el=document.getElementById('statusMsg');el.textContent=msg;el.style.display='block';}
