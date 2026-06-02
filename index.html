@@ -21,57 +21,57 @@
         --candle-up-stroke: #777; --candle-dn-stroke: #777;
       }
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size:15px; background:var(--bg); color:var(--text); min-height:100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size:16px; background:var(--bg); color:var(--text); min-height:100vh; }
     header { border-bottom:0.5px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; gap:12px; }
-    header h1 { font-size:18px; font-weight:500; }
-    header span { font-size:13px; color:var(--text2); background:var(--bg2); padding:3px 9px; border-radius:20px; }
+    header h1 { font-size:20px; font-weight:500; }
+    header span { font-size:14px; color:var(--text2); background:var(--bg2); padding:3px 9px; border-radius:20px; }
     main { max-width:1000px; margin:0 auto; padding:1.5rem; }
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.5rem; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; flex-wrap:wrap; }
-    .search-row input { flex:1; min-width:160px; height:40px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; padding:0 12px; outline:none; }
+    .search-row input { flex:1; min-width:160px; height:42px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:16px; padding:0 12px; outline:none; }
     .search-row input:focus { border-color:var(--line); }
-    .search-row button { height:40px; padding:0 20px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; cursor:pointer; }
+    .search-row button { height:42px; padding:0 20px; border-radius:8px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:16px; cursor:pointer; }
     .search-row button:hover { background:var(--bg3); }
     .sug-box { background:var(--bg); border:0.5px solid var(--border); border-radius:8px; margin-top:6px; display:none; max-height:200px; overflow-y:auto; }
-    .sug-item { padding:10px 13px; cursor:pointer; font-size:14px; border-bottom:0.5px solid var(--border); color:var(--text); }
+    .sug-item { padding:10px 13px; cursor:pointer; font-size:15px; border-bottom:0.5px solid var(--border); color:var(--text); }
     .sug-item:hover { background:var(--bg2); }
     .sug-item:last-child { border-bottom:none; }
     .sug-item strong { color:var(--line); }
-    .status { text-align:center; padding:2.5rem; font-size:15px; color:var(--text2); }
+    .status { text-align:center; padding:2.5rem; font-size:16px; color:var(--text2); }
 
     .metrics-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
     .metrics-bottom { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.5rem; }
     .metric { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
-    .metric .lbl { font-size:13px; color:var(--text2); margin-bottom:5px; }
-    .metric .val { font-size:22px; font-weight:500; }
-    .metric .val.sm { font-size:15px; }
+    .metric .lbl { font-size:14px; color:var(--text2); margin-bottom:5px; }
+    .metric .val { font-size:24px; font-weight:500; }
+    .metric .val.sm { font-size:16px; }
 
     .op-card { background:var(--bg2); border-radius:var(--radius); padding:1rem 1.1rem; border:0.5px solid var(--border); }
     .op-card.buy-card { border-left:3px solid var(--buy); }
     .op-card.sell-card { border-left:3px solid var(--sell); }
     .op-header { margin-bottom:12px; }
-    .badge { font-size:12px; font-weight:500; padding:3px 9px; border-radius:20px; }
+    .badge { font-size:13px; font-weight:500; padding:3px 9px; border-radius:20px; }
     .badge.buy { background:rgba(29,158,117,0.12); color:var(--buy); }
     .badge.sell { background:rgba(216,90,48,0.12); color:var(--sell); }
     .op-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .op-item .lbl { font-size:12px; color:var(--text2); margin-bottom:3px; }
-    .op-item .val { font-size:20px; font-weight:500; }
+    .op-item .lbl { font-size:13px; color:var(--text2); margin-bottom:3px; }
+    .op-item .val { font-size:22px; font-weight:500; }
     .op-item .val.buy { color:var(--buy); }
     .op-item .val.sell { color:var(--sell); }
-    .op-item .val.sm { font-size:14px; color:var(--text); }
+    .op-item .val.sm { font-size:15px; color:var(--text); }
 
     .chart-section { background:var(--bg2); border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; border:0.5px solid var(--border); }
-    .sec-lbl { font-size:14px; font-weight:500; color:var(--text2); margin-bottom:10px; }
-    .legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:12px; font-size:13px; color:var(--text2); }
+    .sec-lbl { font-size:15px; font-weight:500; color:var(--text2); margin-bottom:10px; }
+    .legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:12px; font-size:14px; color:var(--text2); }
     .legend span { display:flex; align-items:center; gap:6px; }
     .dot { display:inline-block; width:11px; height:11px; border-radius:2px; flex-shrink:0; }
 
     #candleCanvas { width:100%; display:block; cursor:crosshair; }
     #volCanvas { width:100%; display:block; }
-    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:8px; padding:9px 13px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; line-height:1.8; min-width:200px; }
+    .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:10px; padding:12px 14px; font-size:14px; color:var(--text); pointer-events:none; display:none; z-index:10; width:250px; }
     .candle-wrap { position:relative; }
-    footer { text-align:center; padding:2rem; font-size:13px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
+    footer { text-align:center; padding:2rem; font-size:14px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:2rem; }
   </style>
 </head>
 <body>
@@ -482,6 +482,32 @@ function drawCombinedChart() {
   // ── TOOLTIP ──
   const tt = document.getElementById('candleTooltip');
 
+  function fmtPct(v) { return v.toFixed(2).replace('.',',')+'%'; }
+  function fmtR(v) {
+    if (v >= 1e9) return 'R$ '+(v/1e9).toFixed(2).replace('.',',')+'B';
+    if (v >= 1e6) return 'R$ '+(v/1e6).toFixed(1).replace('.',',')+'M';
+    if (v >= 1e3) return 'R$ '+(v/1e3).toFixed(0)+'K';
+    return 'R$ '+v.toFixed(0);
+  }
+  function fmtN(v) {
+    if (v >= 1e9) return (v/1e9).toFixed(2).replace('.',',')+'B';
+    if (v >= 1e6) return (v/1e6).toFixed(1).replace('.',',')+'M';
+    if (v >= 1e3) return (v/1e3).toFixed(0)+'K';
+    return v.toLocaleString('pt-BR');
+  }
+
+  function rowT(lbl, val, color) {
+    const c = color ? `style="color:${color};font-weight:500"` : '';
+    return `<tr><td style="color:var(--text2);padding:2px 0;white-space:nowrap">${lbl}</td><td ${c} style="text-align:right;white-space:nowrap;padding:2px 0 2px 8px">${val}</td></tr>`;
+  }
+  function rowS(lbl, val, color) {
+    const c = color ? `style="color:${color};font-weight:500"` : '';
+    return `<tr><td style="color:var(--text2);padding:1px 0 1px 14px;font-size:13px;white-space:nowrap">${lbl}</td><td ${c} style="text-align:right;white-space:nowrap;padding:1px 0 1px 8px;font-size:13px">${val}</td></tr>`;
+  }
+  function divider() {
+    return `<tr><td colspan="2" style="padding:5px 0 2px;border-top:0.5px solid var(--border)"></td></tr>`;
+  }
+
   function showTooltip(e, canvas) {
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left) * (W / rect.width);
@@ -492,43 +518,82 @@ function drawCombinedChart() {
     const info = porDia[c.date] || {};
     const grps = gPorDiaGrupo[c.date] || {};
 
-    // Monta tooltip
-    let html = `<strong>${c.date}</strong>`;
-    if (c.open) {
-      html += `<br><span style="color:var(--text2)">Abertura: </span>R$${c.open?.toFixed(2)}`;
-      html += `<br><span style="color:var(--text2)">Máxima: </span>R$${c.high?.toFixed(2)}`;
-      html += `<br><span style="color:var(--text2)">Mínima: </span>R$${c.low?.toFixed(2)}`;
-      html += `<br><span style="color:var(--text2)">Fechamento: </span>R$${c.close?.toFixed(2)}`;
-    }
+    // Vol financeiro do dia = volume * close (aprox)
+    const volFinDia = (c.volume||0) * (c.close||0);
+    const qtdDia    = c.volume||0;
 
-    if (info.compra > 0 || info.venda > 0) {
-      html += `<hr style="border:none;border-top:0.5px solid var(--border);margin:6px 0">`;
+    const varPct = (c.open && c.close) ? ((c.close - c.open) / c.open * 100) : null;
+    const varColor = varPct === null ? '' : varPct >= 0 ? '#1D9E75' : '#D85A30';
+    const varStr   = varPct !== null ? (varPct >= 0 ? '+' : '') + varPct.toFixed(2).replace('.',',') + '%' : '—';
+
+    // Data centralizada
+    const dateStr = c.date ? c.date.split('-').reverse().join('/') : '';
+    let html = `<div style="font-weight:500;font-size:15px;text-align:center;margin-bottom:8px">${dateStr}</div>`;
+    html += `<table style="width:100%;border-collapse:collapse">`;
+    if (c.open)  html += rowT('Abertura',    fmtR(c.open));
+    if (c.close) html += rowT('Fechamento',  fmtR(c.close));
+    if (varPct !== null) html += rowT('Variação', varStr, varColor);
+    if (volFinDia > 0)   html += rowT('Vol. Financ.', fmtR(volFinDia));
+    if (qtdDia > 0)      html += rowT('Qtde', fmtN(qtdDia));
+    html += `</table>`;
+
+    const hasInsider = info.compra > 0 || info.venda > 0;
+    if (hasInsider) {
+      html += `<div style="border-top:0.5px solid var(--border);margin:10px 0 8px"></div>`;
 
       if (info.compra > 0) {
-        html += `<div style="color:#1D9E75;font-weight:500">● Compra — ${fmtQtd(info.qtd_compra)} ações · ${fmt(info.vol_compra)}</div>`;
-        // detalhe por grupo
-        for (const [grp, ginfo] of Object.entries(grps)) {
-          if ((ginfo.compra||0) > 0) {
-            html += `<div style="color:var(--text2);font-size:12px;padding-left:10px">${grp}: ${fmtQtd(ginfo.qtd_compra||0)} · ${fmt(ginfo.vol_compra||0)}</div>`;
+        const pctF = volFinDia > 0 ? fmtPct((info.vol_compra||0) / volFinDia * 100) : '—';
+        const pctQ = qtdDia    > 0 ? fmtPct((info.qtd_compra||0) / qtdDia    * 100) : '—';
+        html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+          <span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span>
+          <span style="font-weight:500;color:#1D9E75">Compra</span></div>`;
+        html += `<table style="width:100%;border-collapse:collapse">`;
+        html += rowS('Vol. Financ.', fmtR(info.vol_compra||0));
+        html += rowS('Qtde',         fmtN(info.qtd_compra||0));
+        html += rowS('% Vol. Financ.', pctF, '#1D9E75');
+        html += rowS('% Vol. Qtde',    pctQ, '#1D9E75');
+        // grupos compra
+        const grpC = Object.entries(grps).filter(([,g]) => (g.compra||0) > 0);
+        if (grpC.length) {
+          html += divider();
+          for (const [grp, ginfo] of grpC) {
+            html += rowS(grp, `${fmtN(ginfo.qtd_compra||0)} · ${fmtR(ginfo.vol_compra||0)}`);
           }
+        }
+        html += `</table>`;
+        if (info.venda > 0) {
+          html += `<div style="border-top:0.5px solid var(--border);margin:8px 0 6px"></div>`;
         }
       }
+
       if (info.venda > 0) {
-        html += `<div style="color:#D85A30;font-weight:500">● Venda — ${fmtQtd(info.qtd_venda)} ações · ${fmt(info.vol_venda)}</div>`;
-        for (const [grp, ginfo] of Object.entries(grps)) {
-          if ((ginfo.venda||0) > 0) {
-            html += `<div style="color:var(--text2);font-size:12px;padding-left:10px">${grp}: ${fmtQtd(ginfo.qtd_venda||0)} · ${fmt(ginfo.vol_venda||0)}</div>`;
+        const pctF = volFinDia > 0 ? fmtPct((info.vol_venda||0) / volFinDia * 100) : '—';
+        const pctQ = qtdDia    > 0 ? fmtPct((info.qtd_venda||0) / qtdDia    * 100) : '—';
+        html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+          <span style="width:8px;height:8px;border-radius:50%;background:#D85A30;flex-shrink:0"></span>
+          <span style="font-weight:500;color:#D85A30">Venda</span></div>`;
+        html += `<table style="width:100%;border-collapse:collapse">`;
+        html += rowS('Vol. Financ.', fmtR(info.vol_venda||0));
+        html += rowS('Qtde',         fmtN(info.qtd_venda||0));
+        html += rowS('% Vol. Financ.', pctF, '#D85A30');
+        html += rowS('% Vol. Qtde',    pctQ, '#D85A30');
+        // grupos venda
+        const grpV = Object.entries(grps).filter(([,g]) => (g.venda||0) > 0);
+        if (grpV.length) {
+          html += divider();
+          for (const [grp, ginfo] of grpV) {
+            html += rowS(grp, `${fmtN(ginfo.qtd_venda||0)} · ${fmtR(ginfo.vol_venda||0)}`);
           }
         }
+        html += `</table>`;
       }
     }
 
     tt.innerHTML = html;
     tt.style.display = 'block';
 
-    // Posição relativa ao wrap
     const wrapRect = tt.parentElement.getBoundingClientRect();
-    const tx = Math.min(e.clientX - wrapRect.left + 14, wrapRect.width - 220);
+    const tx = Math.min(e.clientX - wrapRect.left + 14, wrapRect.width - 260);
     const ty = Math.max(e.clientY - wrapRect.top - 10, 0);
     tt.style.left = tx+'px';
     tt.style.top  = ty+'px';
