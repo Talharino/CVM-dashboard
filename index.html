@@ -68,8 +68,8 @@
     .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; width:240px; max-width:85vw; }
 
     /* SETOR TABLE */
-    .setor-wrap { background:rgba(28,28,26,0.88); backdrop-filter:blur(6px); border-radius:var(--radius); border:0.5px solid var(--border); overflow:hidden; margin-bottom:12px; }
-    .setor-caption { padding:10px 14px; font-size:15px; font-weight:500; color:var(--text2); border-bottom:0.5px solid var(--border); background:rgba(28,28,26,0.88); }
+    .setor-wrap { background:rgba(10,22,40,0.92); backdrop-filter:blur(6px); border-radius:var(--radius); border:0.5px solid rgba(255,255,255,0.1); overflow:hidden; margin-bottom:12px; }
+    .setor-caption { padding:10px 14px; font-size:15px; font-weight:500; color:#9ca3af; border-bottom:0.5px solid rgba(255,255,255,0.1); background:#0a1628; }
     .setor-table-scroll { overflow-x:auto; }
     .setor-table { width:100%; border-collapse:collapse; font-size:13px; white-space:nowrap; }
     .setor-table .col-ops { width:60px; }
@@ -77,8 +77,8 @@
     .setor-table .col-vol { width:80px; }
     .setor-table .col-pm { width:80px; }
     .setor-table .col-pct { width:70px; }
-    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid var(--border); }
-    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:var(--text2); border-bottom:0.5px solid var(--border); }
+    .setor-table thead tr:first-child th { padding:8px 10px; font-size:13px; font-weight:500; border-bottom:0.5px solid rgba(255,255,255,0.1); background:#0d1f3c; }
+    .setor-table thead tr:last-child th { padding:5px 8px; font-size:11px; font-weight:400; color:#7b9ec8; border-bottom:0.5px solid rgba(255,255,255,0.1); background:#0d1f3c; }
     .th-t { text-align:left; color:var(--text); border-right:0.5px solid var(--border); }
     .th-b { text-align:center; color:var(--buy); background:rgba(29,158,117,0.08); }
     .th-s { text-align:center; color:var(--sell); background:rgba(216,90,48,0.08); }
@@ -88,14 +88,14 @@
     .setor-table tbody tr.data-row.ativo { background:rgba(55,138,221,0.10); border-bottom:none; }
     .setor-table tbody tr.data-row.ativo .td-ticker-val { color:var(--line); }
     .setor-table tbody tr.data-row.ativo .chevron { transform:rotate(90deg); color:var(--line); }
-    .td-ticker { padding:8px 10px; border-right:0.5px solid var(--border); vertical-align:middle; }
-    .td-prazo { padding:0 10px; text-align:center; border-right:0.5px solid var(--border); vertical-align:middle; width:55px; }
+    .td-ticker { padding:8px 10px; border-right:0.5px solid rgba(255,255,255,0.1); vertical-align:middle; background:#102040; }
+    .td-prazo { padding:0 10px; text-align:center; border-right:0.5px solid rgba(255,255,255,0.1); vertical-align:middle; width:55px; background:#102040; }
     .prazo-val { font-size:13px; font-weight:700; }
     .prazo-fast { color:#AAFF00; }
     .prazo-mid { color:#e6a817; }
     .prazo-slow { color:#D85A30; }
     .td-ticker-val { font-size:15px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px; }
-    .td-ticker-sub { font-size:12px; color:var(--text2); margin-top:1px; }
+    .td-ticker-sub { font-size:12px; color:#7b9ec8; margin-top:1px; }
     .chevron { font-size:10px; color:var(--text2); transition:transform 0.2s; display:inline-block; }
     .td-b { padding:7px 8px; text-align:right; background:rgba(29,158,117,0.03); color:var(--text); font-size:13px; }
     .td-s { padding:7px 8px; text-align:right; background:rgba(216,90,48,0.03); color:var(--text); font-size:13px; }
