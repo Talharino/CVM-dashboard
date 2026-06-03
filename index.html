@@ -58,7 +58,7 @@
     .op-pct .val { font-size:15px; font-weight:500; }
 
     /* CHART (busca direta) */
-    .chart-section { background:var(--bg2); border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid var(--border); }
+    .chart-section { background:#0a1a2e; border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid rgba(255,255,255,0.1); }
     .legend { display:flex; gap:14px; margin-bottom:10px; font-size:13px; color:var(--text2); }
     .legend span { display:flex; align-items:center; gap:5px; }
     .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex-shrink:0; }
@@ -108,7 +108,7 @@
 
     .expand-row td { padding:0; background:var(--bg); border-bottom:0.5px solid var(--border); }
     .expand-inner { padding:0; }
-    .inline-chart { background:var(--bg2); padding:10px 12px; border-top:0.5px solid var(--border); }
+    .inline-chart { background:#0a1a2e; padding:10px 12px; border-top:0.5px solid rgba(255,255,255,0.1); }
     .inline-legend { display:flex; gap:12px; margin-bottom:8px; font-size:11px; color:var(--text2); }
     .inline-legend span { display:flex; align-items:center; gap:4px; }
 
@@ -233,7 +233,7 @@
           <thead>
             <tr>
               <th class="th-t" rowspan="2" style="vertical-align:middle;padding:8px 12px;">Ticker B3</th>
-              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 10px;font-size:10px;font-weight:500;color:var(--text2);border-right:0.5px solid var(--border);white-space:nowrap;">Tempo Médio<br>Informado</th>
+              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 10px;font-size:12px;font-weight:500;color:#ffffff;border-right:0.5px solid rgba(255,255,255,0.1);white-space:nowrap;background:#0d1f3c;">Tempo Médio<br>Informado</th>
               <th class="th-b" colspan="6" style="border-right:0.5px solid var(--border);">Compra</th>
               <th class="th-s" colspan="6">Venda</th>
             </tr>
@@ -601,12 +601,11 @@ function drawInlineChart(ticker, data, porDia){
   const tt=document.getElementById(`it-${ticker}`);
   if(!cc||!vc) return;
 
-  const isDark=!window.matchMedia('(prefers-color-scheme:light)').matches;
-  const textColor=isDark?'#9c9a92':'#6b6b67';
-  const gridColor=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)';
-  const wickColor=isDark?'#666':'#999';
-  const upFill=isDark?'#e8e6de':'#ffffff', upStroke='#888';
-  const dnFill=isDark?'#111110':'#1a1a18', dnStroke=isDark?'#888':'#666';
+  const textColor='#7b9ec8';
+  const gridColor='rgba(100,150,220,0.08)';
+  const wickColor='#4a6a8a';
+  const upFill='#e8e6de', upStroke='#6a8aaa';
+  const dnFill='#0a1a2e', dnStroke='#4a6a8a';
 
   const W=cc.parentElement.clientWidth-20||800;
   const H_C=240, H_V=60;
