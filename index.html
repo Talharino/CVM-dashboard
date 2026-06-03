@@ -639,8 +639,11 @@ function drawInlineChart(ticker, data, porDia){
     ctx.fillText('R$'+p.toFixed(2),PL-4,y+3);
   }
   const lE=Math.max(1,Math.floor(n/10));
-  ctx.fillStyle=textColor; ctx.font='10px system-ui'; ctx.textAlign='center';
-  for(let i=0;i<n;i+=lE) ctx.fillText(data[i].date.slice(5),xOf(i),H_C-PB+14);
+  ctx.fillStyle=textColor; ctx.font='12px system-ui'; ctx.textAlign='center';
+  for(let i=0;i<n;i+=lE){
+    const parts=data[i].date.slice(5).split('-');
+    ctx.fillText(parts[1]+'/'+parts[0],xOf(i),H_C-PB+14);
+  }
 
   for(let i=0;i<n;i++){
     const c=data[i]; if(!c.open||!c.close) continue;
@@ -829,7 +832,11 @@ function drawMainChart(){
   for(let i=0;i<=6;i++){const p=minP+(maxP-minP)*(i/6),y=yOf(p);ctx.beginPath();ctx.moveTo(PL,y);ctx.lineTo(W-PR,y);ctx.stroke();ctx.fillStyle=textColor;ctx.font='11px system-ui';ctx.textAlign='right';ctx.fillText('R$'+p.toFixed(2),PL-5,y+4);}
   const lE=Math.max(1,Math.floor(n/10));
   ctx.fillStyle=textColor;ctx.font='11px system-ui';ctx.textAlign='center';
-  for(let i=0;i<n;i+=lE) ctx.fillText(data[i].date.slice(5),xOf(i),H_C-PB+16);
+  for(let i=0;i<n;i+=lE){
+  const parts=data[i].date.slice(5).split('-');
+  ctx.font='12px system-ui';
+  ctx.fillText(parts[1]+'/'+parts[0],xOf(i),H_C-PB+16);
+}
   for(let i=0;i<n;i++){const c=data[i];if(!c.open||!c.close)continue;const x=xOf(i),isUp=c.close>=c.open;ctx.strokeStyle=wickColor;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,yOf(c.high));ctx.lineTo(x,yOf(c.low));ctx.stroke();const yO=yOf(c.open),yC=yOf(c.close),bY=Math.min(yO,yC),bH=Math.max(1.5,Math.abs(yO-yC));ctx.fillStyle=isUp?upFill:dnFill;ctx.strokeStyle=isUp?upStroke:dnStroke;ctx.lineWidth=1;ctx.fillRect(x-cW/2,bY,cW,bH);ctx.strokeRect(x-cW/2,bY,cW,bH);}
   const dotR=9;
   for(let i=0;i<n;i++){
