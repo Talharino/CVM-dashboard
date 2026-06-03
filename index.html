@@ -623,7 +623,7 @@ function drawInlineChart(ticker, data, porDia){
   if(!data||!data.length){ cc.getContext('2d').fillStyle=textColor; cc.getContext('2d').fillText('Sem cotação disponível',20,20); return; }
 
   const n=data.length;
-  const PL=50,PR=4,PT=16,PB=24;
+  const PL=50,PR=50,PT=16,PB=24;
   const pW=W-PL-PR, pH=H_C-PT-PB;
   const step=pW/n, cW=Math.max(2,step*0.65);
   const allH=data.map(d=>d.high).filter(Boolean), allL=data.map(d=>d.low).filter(Boolean);
@@ -823,7 +823,7 @@ function drawMainChart(){
   const cc=document.getElementById('candleCanvas'); cc.width=W; cc.height=H_C;
   const vc=document.getElementById('volCanvas'); vc.width=W; vc.height=H_V; vc.style.marginTop='4px';
   if(!data.length) return;
-  const n=data.length, PL=56,PR=4,PT=20,PB=30;
+  const n=data.length, PL=56,PR=56,PT=20,PB=30;
   const pW=W-PL-PR, pH=H_C-PT-PB, step=pW/n, cW=Math.max(3,step*0.65);
   const allH=data.map(d=>d.high).filter(Boolean), allL=data.map(d=>d.low).filter(Boolean);
   const minP=Math.min(...allL)*0.998, maxP=Math.max(...allH)*1.002;
