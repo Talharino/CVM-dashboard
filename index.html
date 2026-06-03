@@ -575,7 +575,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
   // Loading
   const cc=document.getElementById(`ic-${ticker}`);
   if(cc){
-    const W=cc.parentElement.clientWidth-20||800;
+    const W=cc.parentElement.clientWidth||800;
     cc.width=W; cc.height=240;
     const ctx=cc.getContext('2d');
     ctx.fillStyle='#9c9a92'; ctx.font='14px system-ui'; ctx.textAlign='center';
@@ -614,7 +614,7 @@ function drawInlineChart(ticker, data, porDia){
   const upFill='#e8e6de', upStroke='#6a8aaa';
   const dnFill='#0a1a2e', dnStroke='#4a6a8a';
 
-  const W=cc.parentElement.clientWidth-20||800;
+  const W=cc.parentElement.clientWidth||800;
   const H_C=240, H_V=60;
   cc.width=W; cc.height=H_C;
   vc.width=W; vc.height=H_V;
