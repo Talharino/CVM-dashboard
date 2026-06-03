@@ -89,6 +89,11 @@
     .setor-table tbody tr.data-row.ativo .td-ticker-val { color:var(--line); }
     .setor-table tbody tr.data-row.ativo .chevron { transform:rotate(90deg); color:var(--line); }
     .td-ticker { padding:8px 10px; border-right:0.5px solid var(--border); vertical-align:middle; }
+    .td-prazo { padding:0 10px; text-align:center; border-right:0.5px solid var(--border); vertical-align:middle; width:55px; }
+    .prazo-val { font-size:13px; font-weight:700; }
+    .prazo-fast { color:#AAFF00; }
+    .prazo-mid { color:#e6a817; }
+    .prazo-slow { color:#D85A30; }
     .td-ticker-val { font-size:15px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:5px; }
     .td-ticker-sub { font-size:12px; color:var(--text2); margin-top:1px; }
     .chevron { font-size:10px; color:var(--text2); transition:transform 0.2s; display:inline-block; }
@@ -194,8 +199,8 @@
   <div id="chartArea" style="display:none">
     <div id="chartSection" class="chart-section">
       <div class="legend">
-        <span><span class="dot" style="background:var(--buy)"></span>Compra Interna</span>
-        <span><span class="dot" style="background:var(--sell)"></span>Venda Interna</span>
+        <span><span class="dot" style="background:#AAFF00"></span>Compra Interna</span>
+        <span><span class="dot" style="background:#FF6B00"></span>Venda Interna</span>
       </div>
       <div class="candle-wrap">
         <canvas id="candleCanvas"></canvas>
@@ -210,6 +215,7 @@
           <thead>
             <tr>
               <th class="th-t" rowspan="2" style="vertical-align:middle;padding:8px 12px;">Ticker B3</th>
+              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 10px;font-size:10px;font-weight:500;color:var(--text2);border-right:0.5px solid var(--border);white-space:nowrap;">Tempo Médio<br>Informado</th>
               <th class="th-b" colspan="6" style="border-right:0.5px solid var(--border);">Compra</th>
               <th class="th-s" colspan="6">Venda</th>
             </tr>
@@ -315,6 +321,7 @@ function renderSetorTabela(setor,tickers){
         <div class="td-ticker-val"><span class="chevron">▶</span>${t.ticker_b3}</div>
         ${t.segmento?`<div class="td-ticker-sub">${t.segmento}</div>`:''}
       </td>
+      <td class="td-prazo" id="prazo-${t.ticker_b3}"><span class="skel" style="width:28px;height:12px;display:inline-block;"></span></td>
       <td class="td-b v-dash" colspan="6" style="border-right:0.5px solid var(--border);text-align:center;"><span class="skel" style="width:70%;height:11px;display:inline-block;"></span></td>
       <td class="td-s v-dash" colspan="6" style="text-align:center;"><span class="skel" style="width:60%;height:11px;display:inline-block;"></span></td>
     </tr>
@@ -346,6 +353,15 @@ async function carregarLinhaTabela(t){
     }
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(!row) return;
+    // Preenche tempo médio de entrega
+    if(mov.media_dias_entrega!=null){
+      const prazoEl=document.getElementById(`prazo-${t.ticker_b3}`);
+      if(prazoEl){
+        const d=Math.round(mov.media_dias_entrega);
+        const cls=d<=15?'prazo-fast':d<=30?'prazo-mid':'prazo-slow';
+        prazoEl.innerHTML=`<span class="prazo-val ${cls}">${d}d</span>`;
+      }
+    }
     while(row.children.length>1) row.removeChild(row.lastChild);
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
     if(totC===0 && totV===0){
@@ -376,26 +392,12 @@ function buildCols(mov, candles){
   for(const d of Object.values(mov.por_dia||{})){qtdC+=d.qtd_compra||0;volC+=d.vol_compra||0;qtdV+=d.qtd_venda||0;volV+=d.vol_venda||0;}
   const pmC=qtdC>0?volC/qtdC:0, pmV=qtdV>0?volV/qtdV:0;
 
-  // Mapa de candles por data para lookup rápido
-  const candleMap={};
-  for(const c of candles) candleMap[c.date]=c;
-
-  // Calcula % apenas nos dias com movimentação insider
-  // somando volume do mercado SOMENTE nos dias em que houve operação
-  let tQC=0, tVC=0, tQV=0, tVV=0;
-  for(const [dia, info] of Object.entries(mov.por_dia||{})){
-    const c=candleMap[dia];
-    if(!c) continue;
-    const volMercadoDia=(c.volume||0);
-    const volFinDia=(c.volume||0)*(c.close||0);
-    if((info.qtd_compra||0)>0){ tQC+=volMercadoDia; tVC+=volFinDia; }
-    if((info.qtd_venda||0)>0){  tQV+=volMercadoDia; tVV+=volFinDia; }
-  }
-
-  const pCQ=tQC>0&&qtdC>0?((qtdC/tQC)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pCV=tVC>0&&volC>0?((volC/tVC)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVQ=tQV>0&&qtdV>0?((qtdV/tQV)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVV=tVV>0&&volV>0?((volV/tVV)*100).toFixed(2).replace('.',',')+'%':'—';
+  const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
+  const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
+  const pCQ=tQ>0&&qtdC>0?((qtdC/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pCV=tV>0&&volC>0?((volC/tV)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVQ=tQ>0&&qtdV>0?((qtdV/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVV=tV>0&&volV>0?((volV/tV)*100).toFixed(2).replace('.',',')+'%':'—';
   const d='<span class="v-dash">—</span>';
   const hC=(t.compra||0)>0, hV=(t.venda||0)>0;
   return `
@@ -541,12 +543,24 @@ function drawInlineChart(ticker, data, porDia){
     ctx.fillStyle=isUp?upFill:dnFill; ctx.strokeStyle=isUp?upStroke:dnStroke; ctx.lineWidth=1;
     ctx.fillRect(x-cW/2,bY,cW,bH); ctx.strokeRect(x-cW/2,bY,cW,bH);
   }
-  const dotR=4;
+  const dotR=9;
   for(let i=0;i<n;i++){
     const d=data[i].date, info=porDia[d]; if(!info) continue;
     const x=xOf(i);
-    if(info.compra>0){ctx.beginPath();ctx.arc(x,yOf(data[i].low)+dotR+4,dotR,0,Math.PI*2);ctx.fillStyle='#1D9E75';ctx.fill();}
-    if(info.venda>0){ctx.beginPath();ctx.arc(x,yOf(data[i].high)-dotR-4,dotR,0,Math.PI*2);ctx.fillStyle='#D85A30';ctx.fill();}
+    if(info.compra>0){
+      const yPos=yOf(data[i].low)+dotR+5;
+      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(170,255,0,0.15)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#AAFF00';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+    }
+    if(info.venda>0){
+      const yPos=yOf(data[i].high)-dotR-5;
+      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#FF6B00';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+    }
   }
 
   // vol
@@ -709,8 +723,24 @@ function drawMainChart(){
   ctx.fillStyle=textColor;ctx.font='11px system-ui';ctx.textAlign='center';
   for(let i=0;i<n;i+=lE) ctx.fillText(data[i].date.slice(5),xOf(i),H_C-PB+16);
   for(let i=0;i<n;i++){const c=data[i];if(!c.open||!c.close)continue;const x=xOf(i),isUp=c.close>=c.open;ctx.strokeStyle=wickColor;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,yOf(c.high));ctx.lineTo(x,yOf(c.low));ctx.stroke();const yO=yOf(c.open),yC=yOf(c.close),bY=Math.min(yO,yC),bH=Math.max(1.5,Math.abs(yO-yC));ctx.fillStyle=isUp?upFill:dnFill;ctx.strokeStyle=isUp?upStroke:dnStroke;ctx.lineWidth=1;ctx.fillRect(x-cW/2,bY,cW,bH);ctx.strokeRect(x-cW/2,bY,cW,bH);}
-  const dotR=5;
-  for(let i=0;i<n;i++){const d=data[i].date,info=porDia[d];if(!info)continue;const x=xOf(i);if(info.compra>0){ctx.beginPath();ctx.arc(x,yOf(data[i].low)+dotR+5,dotR,0,Math.PI*2);ctx.fillStyle='#1D9E75';ctx.fill();}if(info.venda>0){ctx.beginPath();ctx.arc(x,yOf(data[i].high)-dotR-5,dotR,0,Math.PI*2);ctx.fillStyle='#D85A30';ctx.fill();}}
+  const dotR=9;
+  for(let i=0;i<n;i++){
+    const d=data[i].date,info=porDia[d];if(!info)continue;const x=xOf(i);
+    if(info.compra>0){
+      const yPos=yOf(data[i].low)+dotR+5;
+      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(170,255,0,0.15)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#AAFF00';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+    }
+    if(info.venda>0){
+      const yPos=yOf(data[i].high)-dotR-5;
+      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#FF6B00';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+    }
+  }
   const vctx=vc.getContext('2d');
   const VP_L=PL,VP_R=PR,VP_T=8,VP_B=8,vH=H_V-VP_T-VP_B;
   let maxVol=0;for(const d of data.map(c=>c.date)){const info=porDia[d];if(info){const t=(info.vol_compra||0)+(info.vol_venda||0);if(t>maxVol)maxVol=t;}}
@@ -740,8 +770,8 @@ function drawMainChart(){
     html+=`</table>`;
     if(info.compra>0||info.venda>0){
       html+=`<div style="border-top:0.5px solid var(--border);margin:8px 0 6px"></div>`;
-      if(info.compra>0){const pF=vF>0?fmtPct((info.vol_compra||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_compra||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:13px">Compra</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}`;const gC=Object.entries(grps).filter(([,g])=>(g.compra||0)>0);if(gC.length){html+=dv();for(const[g,gi]of gC)html+=rS(g,`${fmtN(gi.qtd_compra||0)} · ${fmt(gi.vol_compra||0)}`);}html+=`</table>`;if(info.venda>0)html+=`<div style="border-top:0.5px solid var(--border);margin:6px 0 5px"></div>`;}
-      if(info.venda>0){const pF=vF>0?fmtPct((info.vol_venda||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_venda||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#D85A30;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:13px">Venda</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}`;const gV=Object.entries(grps).filter(([,g])=>(g.venda||0)>0);if(gV.length){html+=dv();for(const[g,gi]of gV)html+=rS(g,`${fmtN(gi.qtd_venda||0)} · ${fmt(gi.vol_venda||0)}`);}html+=`</table>`;}
+      if(info.compra>0){const pF=vF>0?fmtPct((info.vol_compra||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_compra||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#AAFF00;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:13px">Compra</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}`;const gC=Object.entries(grps).filter(([,g])=>(g.compra||0)>0);if(gC.length){html+=dv();for(const[g,gi]of gC)html+=rS(g,`${fmtN(gi.qtd_compra||0)} · ${fmt(gi.vol_compra||0)}`);}html+=`</table>`;if(info.venda>0)html+=`<div style="border-top:0.5px solid var(--border);margin:6px 0 5px"></div>`;}
+      if(info.venda>0){const pF=vF>0?fmtPct((info.vol_venda||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_venda||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#FF6B00;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:13px">Venda</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}`;const gV=Object.entries(grps).filter(([,g])=>(g.venda||0)>0);if(gV.length){html+=dv();for(const[g,gi]of gV)html+=rS(g,`${fmtN(gi.qtd_venda||0)} · ${fmt(gi.vol_venda||0)}`);}html+=`</table>`;}
     }
     tt.innerHTML=html;tt.style.display='block';
     const wR=tt.parentElement.getBoundingClientRect();
