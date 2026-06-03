@@ -582,10 +582,10 @@ async function toggleExpandir(ticker, cvm, rowEl){
 
   try {
     const tickerYahoo=rowEl._viewData?.ticker_yahoo||rowEl._movData?.ticker_yahoo||'';
-    const [movFull, cotRes]=await Promise.all([
-      fetch(`${FN}/movimentacoes?cvm=${cvm}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>null),
-      tickerYahoo?fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>({candles:[]})):Promise.resolve({candles:[]})
-    ]);
+    // Busca movimentacoes primeiro para saber a data do primeiro trade
+    const movFull=await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>null);
+    const fromCot=getFromCotacao(movFull?.por_dia);
+    const cotRes=tickerYahoo?await fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=${fromCot}`).then(r=>r.json()).catch(()=>({candles:{}})):{candles:[]};
     const mov=(movFull&&!movFull.error)?movFull:rowEl._movData;
     const candles=cotRes?.candles||[];
     rowEl._movData=mov;
