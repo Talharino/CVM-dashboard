@@ -362,7 +362,7 @@ async function carregarLinhaTabela(t){
         prazoEl.innerHTML=`<span class="prazo-val ${cls}">${d}d</span>`;
       }
     }
-    while(row.children.length>1) row.removeChild(row.lastChild);
+    while(row.children.length>2) row.removeChild(row.lastChild);
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
     if(totC===0 && totV===0){
       row.style.display='none';
@@ -378,7 +378,7 @@ async function carregarLinhaTabela(t){
     reordenarTabela();
   } catch(e){
     const row=document.getElementById(`row-${t.ticker_b3}`);
-    if(row){ while(row.children.length>1) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
+    if(row){ while(row.children.length>2) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
   }
 }
 
