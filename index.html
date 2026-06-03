@@ -292,18 +292,36 @@ function selPeriodo(el, periodo){
   document.querySelectorAll('.periodo-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   gPeriodo=periodo;
+  // Salva estado atual: ticker expandido e filtro
+  const tickerExpandidoAntes=gTickerExpandido;
   const menuAtivo=document.querySelector('.menu-item.on');
   if(menuAtivo) menuAtivo.click();
-  // Reaaplica filtro de ticker após recarregar (aguarda tabela renderizar)
-  if(gTickerFiltro){
-    const inputEl=document.getElementById('tickerFilterInput');
-    if(inputEl) inputEl.value=gTickerFiltro;
-    // Observer aguarda linhas carregarem para aplicar filtro
-    const observer=new MutationObserver(()=>{ aplicarFiltroTicker(); });
-    const tbody=document.getElementById('setorTbody');
-    if(tbody) observer.observe(tbody,{childList:true,subtree:true});
-    setTimeout(()=>{ aplicarFiltroTicker(); observer.disconnect(); },3000);
-  }
+  // Após recarregar: reaaplica filtro e reabre gráfico se estava aberto
+  const tbody=document.getElementById('setorTbody');
+  const observer=new MutationObserver(()=>{
+    if(gTickerFiltro){
+      const inputEl=document.getElementById('tickerFilterInput');
+      if(inputEl) inputEl.value=gTickerFiltro;
+      aplicarFiltroTicker();
+    }
+    // Reabre o gráfico que estava expandido
+    if(tickerExpandidoAntes){
+      const row=document.getElementById(`row-${tickerExpandidoAntes}`);
+      if(row && row._movData && row._candles!==null){
+        // Dados já carregados — só abre direto sem nova requisição
+        const expRow=document.getElementById(`exp-${tickerExpandidoAntes}`);
+        if(expRow && expRow.style.display==='none'){
+          row.classList.add('ativo');
+          expRow.style.display='table-row';
+          gTickerExpandido=tickerExpandidoAntes;
+          drawInlineChart(tickerExpandidoAntes, row._candles||[], row._movData.por_dia||{});
+          atualizarPct(row);
+        }
+      }
+    }
+  });
+  if(tbody) observer.observe(tbody,{childList:true,subtree:true});
+  setTimeout(()=>observer.disconnect(), 5000);
 }
 
 let gTickerFiltro='';
