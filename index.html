@@ -375,12 +375,27 @@ function buildCols(mov, candles){
   let qtdC=0,volC=0,qtdV=0,volV=0;
   for(const d of Object.values(mov.por_dia||{})){qtdC+=d.qtd_compra||0;volC+=d.vol_compra||0;qtdV+=d.qtd_venda||0;volV+=d.vol_venda||0;}
   const pmC=qtdC>0?volC/qtdC:0, pmV=qtdV>0?volV/qtdV:0;
-  const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
-  const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
-  const pCQ=tQ>0&&qtdC>0?((qtdC/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pCV=tV>0&&volC>0?((volC/tV)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVQ=tQ>0&&qtdV>0?((qtdV/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVV=tV>0&&volV>0?((volV/tV)*100).toFixed(2).replace('.',',')+'%':'—';
+
+  // Mapa de candles por data para lookup rápido
+  const candleMap={};
+  for(const c of candles) candleMap[c.date]=c;
+
+  // Calcula % apenas nos dias com movimentação insider
+  // somando volume do mercado SOMENTE nos dias em que houve operação
+  let tQC=0, tVC=0, tQV=0, tVV=0;
+  for(const [dia, info] of Object.entries(mov.por_dia||{})){
+    const c=candleMap[dia];
+    if(!c) continue;
+    const volMercadoDia=(c.volume||0);
+    const volFinDia=(c.volume||0)*(c.close||0);
+    if((info.qtd_compra||0)>0){ tQC+=volMercadoDia; tVC+=volFinDia; }
+    if((info.qtd_venda||0)>0){  tQV+=volMercadoDia; tVV+=volFinDia; }
+  }
+
+  const pCQ=tQC>0&&qtdC>0?((qtdC/tQC)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pCV=tVC>0&&volC>0?((volC/tVC)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVQ=tQV>0&&qtdV>0?((qtdV/tQV)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVV=tVV>0&&volV>0?((volV/tVV)*100).toFixed(2).replace('.',',')+'%':'—';
   const d='<span class="v-dash">—</span>';
   const hC=(t.compra||0)>0, hV=(t.venda||0)>0;
   return `
@@ -472,19 +487,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
 }
 
 function atualizarPct(rowEl){
-  const d=rowEl._viewData;
-  const candles=rowEl._candles;
-  if(!d||!candles||!candles.length) return;
-  const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
-  const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
-  const qC=parseFloat(d.qtd_compra)||0, qV=parseFloat(d.qtd_venda)||0;
-  const vC=parseFloat(d.vol_compra)||0, vV=parseFloat(d.vol_venda)||0;
-  const cells=[...rowEl.querySelectorAll('td.td-b,td.td-s')];
-  const pct=(v,t)=>t>0&&v>0?`${((v/t)*100).toFixed(2).replace('.',',')}%`:'—';
-  if(cells[4])  cells[4].innerHTML=`<span class="v-pctb">${pct(qC,tQ)}</span>`;
-  if(cells[5])  cells[5].innerHTML=`<span class="v-pctb">${pct(vC,tV)}</span>`;
-  if(cells[10]) cells[10].innerHTML=`<span class="v-pcts">${pct(qV,tQ)}</span>`;
-  if(cells[11]) cells[11].innerHTML=`<span class="v-pcts">${pct(vV,tV)}</span>`;
+  // atualizarPct não é mais necessário — buildCols já calcula corretamente
 }
 
 
