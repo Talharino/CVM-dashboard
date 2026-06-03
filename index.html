@@ -294,6 +294,16 @@ function selPeriodo(el, periodo){
   gPeriodo=periodo;
   const menuAtivo=document.querySelector('.menu-item.on');
   if(menuAtivo) menuAtivo.click();
+  // Reaaplica filtro de ticker após recarregar (aguarda tabela renderizar)
+  if(gTickerFiltro){
+    const inputEl=document.getElementById('tickerFilterInput');
+    if(inputEl) inputEl.value=gTickerFiltro;
+    // Observer aguarda linhas carregarem para aplicar filtro
+    const observer=new MutationObserver(()=>{ aplicarFiltroTicker(); });
+    const tbody=document.getElementById('setorTbody');
+    if(tbody) observer.observe(tbody,{childList:true,subtree:true});
+    setTimeout(()=>{ aplicarFiltroTicker(); observer.disconnect(); },3000);
+  }
 }
 
 let gTickerFiltro='';
@@ -527,6 +537,8 @@ function reordenarTabela(){
     tbody.appendChild(dataRow);
     if(expRow) tbody.appendChild(expRow);
   });
+  // Reaaplica filtro de ticker se ativo
+  if(gTickerFiltro) aplicarFiltroTicker();
 }
 
 async function toggleExpandir(ticker, cvm, rowEl){
