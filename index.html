@@ -123,6 +123,20 @@
     .menu-item:hover { color:var(--text); }
     .menu-item.on { color:var(--line); border-bottom-color:var(--line); }
 
+    /* PERÍODO BAR */
+    .periodo-bar { border-bottom:0.5px solid var(--border); background:var(--bg2); padding:8px 16px; }
+    .periodo-center { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+    .periodo-group { display:flex; align-items:center; gap:6px; }
+    .periodo-sep { width:0.5px; height:20px; background:var(--border); flex-shrink:0; }
+    .periodo-label { font-size:11px; color:var(--text2); white-space:nowrap; }
+    .periodo-btn { padding:4px 12px; border-radius:20px; border:0.5px solid var(--border); background:transparent; color:var(--text2); font-size:12px; cursor:pointer; white-space:nowrap; font-family:inherit; transition:all .15s; }
+    .periodo-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.25); }
+    .periodo-btn.on { background:var(--buy); color:#fff; border-color:var(--buy); font-weight:500; }
+    .ticker-search-wrap { position:relative; display:flex; align-items:center; }
+    .ticker-filter-input { height:28px; border-radius:20px; border:0.5px solid var(--border); background:var(--bg); color:var(--text); font-size:12px; padding:0 28px 0 12px; outline:none; width:120px; font-family:inherit; }
+    .ticker-filter-input:focus { border-color:var(--line); }
+    .ticker-filter-clear { position:absolute; right:8px; background:none; border:none; color:var(--text2); font-size:11px; cursor:pointer; padding:0; line-height:1; }
+
     footer { text-align:center; padding:1.5rem; font-size:12px; color:var(--text2); border-top:0.5px solid var(--border); margin-top:1rem; }
   </style>
 </head>
@@ -158,6 +172,27 @@
     </div>
   </header>
   <div class="menubar" id="menubar"></div>
+<div class="periodo-bar">
+  <div class="periodo-center">
+    <div class="periodo-group">
+      <span class="periodo-label">Período:</span>
+      <button class="periodo-btn" onclick="selPeriodo(this,'30d')">30d</button>
+      <button class="periodo-btn" onclick="selPeriodo(this,'60d')">60d</button>
+      <button class="periodo-btn" onclick="selPeriodo(this,'90d')">90d</button>
+      <button class="periodo-btn" onclick="selPeriodo(this,'6m')">6 meses</button>
+      <button class="periodo-btn" onclick="selPeriodo(this,'1a')">1 ano</button>
+      <button class="periodo-btn on" onclick="selPeriodo(this,'max')">Máximo</button>
+    </div>
+    <div class="periodo-sep"></div>
+    <div class="periodo-group">
+      <span class="periodo-label">Ticker:</span>
+      <div class="ticker-search-wrap">
+        <input type="text" id="tickerFilterInput" placeholder="ex: ABEV3..." autocomplete="off" class="ticker-filter-input" oninput="onTickerFilterInput(this)"/>
+        <button class="ticker-filter-clear" id="tickerFilterClear" onclick="clearTickerFilter()" style="display:none;">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
   
 </div>
 <main>
@@ -241,6 +276,60 @@ const FN=`${SUPA_URL}/functions/v1`;
 const HDR={apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`};
 
 let gCandles=[], gPorDia={}, gPorDiaGrupo={};
+let gPeriodo='max'; // período selecionado
+
+function getPeriodoFrom(){
+  const hoje = new Date();
+  if(gPeriodo==='30d'){ const d=new Date(hoje); d.setDate(d.getDate()-30); return d.toISOString().slice(0,10); }
+  if(gPeriodo==='60d'){ const d=new Date(hoje); d.setDate(d.getDate()-60); return d.toISOString().slice(0,10); }
+  if(gPeriodo==='90d'){ const d=new Date(hoje); d.setDate(d.getDate()-90); return d.toISOString().slice(0,10); }
+  if(gPeriodo==='6m'){  const d=new Date(hoje); d.setMonth(d.getMonth()-6); return d.toISOString().slice(0,10); }
+  if(gPeriodo==='1a'){  const d=new Date(hoje); d.setFullYear(d.getFullYear()-1); return d.toISOString().slice(0,10); }
+  return '2000-01-01'; // máximo
+}
+
+function selPeriodo(el, periodo){
+  document.querySelectorAll('.periodo-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  gPeriodo=periodo;
+  const menuAtivo=document.querySelector('.menu-item.on');
+  if(menuAtivo) menuAtivo.click();
+}
+
+let gTickerFiltro='';
+let debTickerTimer=null;
+
+function onTickerFilterInput(input){
+  const v=input.value.trim().toUpperCase();
+  document.getElementById('tickerFilterClear').style.display=v?'block':'none';
+  clearTimeout(debTickerTimer);
+  debTickerTimer=setTimeout(()=>{
+    gTickerFiltro=v;
+    aplicarFiltroTicker();
+  },300);
+}
+
+function clearTickerFilter(){
+  document.getElementById('tickerFilterInput').value='';
+  document.getElementById('tickerFilterClear').style.display='none';
+  gTickerFiltro='';
+  aplicarFiltroTicker();
+}
+
+function aplicarFiltroTicker(){
+  const rows=document.querySelectorAll('#setorTbody tr.data-row');
+  rows.forEach(row=>{
+    const ticker=row.querySelector('.td-ticker-val')?.textContent?.replace('▶','').trim()||'';
+    if(!gTickerFiltro||ticker.includes(gTickerFiltro)){
+      if(row._totalOps!==0) row.style.display='';
+    } else {
+      row.style.display='none';
+      // esconde expand se estiver aberto
+      const expRow=document.getElementById(`exp-${ticker}`);
+      if(expRow) expRow.style.display='none';
+    }
+  });
+}
 let gTickerExpandido=null;
 
 const TOP30 = [{"codigo_cvm": "19305", "ticker_b3": "BIOM3", "nome_companhia": "BIOMM SA", "setor": "Sa\u00fade", "segmento": "Medicamentos e Outros Produtos", "ops": 135}, {"codigo_cvm": "701", "ticker_b3": "BIED3", "nome_companhia": "BIOMA EDUCA\u00c7\u00c3O S.A.", "setor": "Consumo C\u00edclico", "segmento": "Servi\u00e7os Educacionais", "ops": 84}, {"codigo_cvm": "6041", "ticker_b3": "BGIP4", "nome_companhia": "INVESTIMENTOS BEMGE S.A.", "setor": "Financeiro", "segmento": "Bancos", "ops": 84}, {"codigo_cvm": "18309", "ticker_b3": "EQPA3", "nome_companhia": "EQUATORIAL PAR\u00c1 DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 72}, {"codigo_cvm": "20648", "ticker_b3": "CEEB3", "nome_companhia": "CIA ESTADUAL DE DISTRIBUI\u00c7\u00c3O DE ENERGIA ELETRICA", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 70}, {"codigo_cvm": "26026", "ticker_b3": "DESK3", "nome_companhia": "DESKTOP S.A", "setor": "Tecnologia da Informa\u00e7\u00e3o", "segmento": "Programas e Servi\u00e7os", "ops": 61}, {"codigo_cvm": "2437", "ticker_b3": "ELET3", "nome_companhia": "CENTRAIS ELETRICAS BRASILEIRAS SA", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 60}, {"codigo_cvm": "22608", "ticker_b3": "PGMN3", "nome_companhia": "EMPREENDIMENTOS PAGUE MENOS SA", "setor": "Financeiro", "segmento": "Servi\u00e7os Financeiros Diversos", "ops": 58}, {"codigo_cvm": "24236", "ticker_b3": "PRNR3", "nome_companhia": "PRINER SERVI\u00c7OS INDUSTRIAIS S.A.", "setor": "Consumo C\u00edclico", "segmento": "Incorpora\u00e7\u00f5es", "ops": 55}, {"codigo_cvm": "23264", "ticker_b3": "ABEV3", "nome_companhia": "AMBEV S.A.", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Cervejas e Refrigerantes", "ops": 53}, {"codigo_cvm": "25577", "ticker_b3": "EQGO3", "nome_companhia": "EQUATORIAL GOIAS DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 52}, {"codigo_cvm": "20532", "ticker_b3": "SANB11", "nome_companhia": "BANCO SANTANDER (BRASIL) S.A.", "setor": "Financeiro", "segmento": "Bancos", "ops": 46}, {"codigo_cvm": "25070", "ticker_b3": "PLPL3", "nome_companhia": "PLANO & PLANO DESENVOLVIMENTO IMOBILI\u00c1RIO S.A.", "setor": "Consumo C\u00edclico", "segmento": "Incorpora\u00e7\u00f5es", "ops": 46}, {"codigo_cvm": "20010", "ticker_b3": "EQTL3", "nome_companhia": "EQUATORIAL S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 43}, {"codigo_cvm": "16608", "ticker_b3": "EQMA3", "nome_companhia": "EQUATORIAL MARANH\u00c3O DISTRIBUIDORA DE ENERGIA S.A.", "setor": "Utilidade P\u00fablica", "segmento": "Energia El\u00e9trica", "ops": 43}, {"codigo_cvm": "21431", "ticker_b3": "HYPE3", "nome_companhia": "HYPERA S/A", "setor": "Sa\u00fade", "segmento": "Medicamentos e Outros Produtos", "ops": 42}, {"codigo_cvm": "23272", "ticker_b3": "LOGG3", "nome_companhia": "LOG COMMERCIAL PROPERTIES E PARTICIPA\u00c7\u00d5ES", "setor": "Bens Industriais", "segmento": "Servi\u00e7os Diversos", "ops": 42}, {"codigo_cvm": "1155", "ticker_b3": "BEES3", "nome_companhia": "BANESTES SA BANCO DO ESTADO DO ESPIRITO SANTO", "setor": "Financeiro", "segmento": "Bancos", "ops": 36}, {"codigo_cvm": "14826", "ticker_b3": "PCAR3", "nome_companhia": "COMPANHIA BRASILEIRA DE DISTRIBUI\u00c7\u00c3O", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Alimentos", "ops": 32}, {"codigo_cvm": "25283", "ticker_b3": "AERI3", "nome_companhia": "AERIS IND. E COM. DE EQUIP. PARA GER. DE ENG. S.A.", "setor": "Bens Industriais", "segmento": "M\u00e1q. e Equip. Industriais", "ops": 32}, {"codigo_cvm": "22349", "ticker_b3": "AZZA3", "nome_companhia": "AZZAS 2154 S.A.", "setor": "Consumo C\u00edclico", "segmento": "Tecidos, Vestu\u00e1rio e Cal\u00e7ados", "ops": 32}, {"codigo_cvm": "5207", "ticker_b3": "DOHL4", "nome_companhia": "DOHLER S.A.", "setor": "Consumo C\u00edclico", "segmento": "Eletrodom\u00e9sticos", "ops": 31}, {"codigo_cvm": "25550", "ticker_b3": "ORVR3", "nome_companhia": "ORIZON VALORIZA\u00c7\u00c3O DE RES\u00cdDUOS S.A.", "setor": "Utilidade P\u00fablica", "segmento": "\u00c1gua e Saneamento", "ops": 31}, {"codigo_cvm": "14109", "ticker_b3": "RAPT4", "nome_companhia": "RANDONCORP S.A.", "setor": "Bens Industriais", "segmento": "Material Rodovi\u00e1rio", "ops": 31}, {"codigo_cvm": "6211", "ticker_b3": "FRAS3", "nome_companhia": "FRASLE MOBILITY S.A.", "setor": "Bens Industriais", "segmento": "Material Rodovi\u00e1rio", "ops": 30}, {"codigo_cvm": "16292", "ticker_b3": "BRFS3", "nome_companhia": "BRF S.A.", "setor": "Consumo n\u00e3o C\u00edclico", "segmento": "Carnes e Derivados", "ops": 30}, {"codigo_cvm": "19739", "ticker_b3": "RENT3", "nome_companhia": "LOCALIZA RENT A CAR SA", "setor": "Bens Industriais", "segmento": "Servi\u00e7os Diversos", "ops": 29}, {"codigo_cvm": "7617", "ticker_b3": "ITSA4", "nome_companhia": "ITAUSA S.A.", "setor": "Financeiro", "segmento": "Holding Diversificadas", "ops": 27}, {"codigo_cvm": "20982", "ticker_b3": "MULT3", "nome_companhia": "MULTIPLAN - EMPREEND IMOBILIARIOS S.A.", "setor": "Financeiro", "segmento": "Explora\u00e7\u00e3o de Im\u00f3veis", "ops": 27}, {"codigo_cvm": "19615", "ticker_b3": "GRND3", "nome_companhia": "GRENDENE SA", "setor": "Consumo C\u00edclico", "segmento": "Cal\u00e7ados", "ops": 26}];
@@ -346,10 +435,10 @@ function renderSetorTabela(setor,tickers){
 
 async function carregarLinhaTabela(t){
   try {
-    const mov=await (await fetch(`${FN}/movimentacoes?cvm=${t.codigo_cvm}&from=2026-01-01`)).json();
+    const mov=await (await fetch(`${FN}/movimentacoes?cvm=${t.codigo_cvm}&from=${getPeriodoFrom()}`)).json();
     let candles=[];
     if(mov.ticker_yahoo){
-      try { const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=2026-01-01`)).json(); if(c.candles) candles=c.candles; } catch(e){}
+      try { const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=${getPeriodoFrom()}`)).json(); if(c.candles) candles=c.candles; } catch(e){}
     }
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(!row) return;
@@ -476,8 +565,8 @@ async function toggleExpandir(ticker, cvm, rowEl){
   try {
     const tickerYahoo=rowEl._viewData?.ticker_yahoo||rowEl._movData?.ticker_yahoo||'';
     const [movFull, cotRes]=await Promise.all([
-      fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`).then(r=>r.json()).catch(()=>null),
-      tickerYahoo?fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=2026-01-01`).then(r=>r.json()).catch(()=>({candles:[]})):Promise.resolve({candles:[]})
+      fetch(`${FN}/movimentacoes?cvm=${cvm}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>null),
+      tickerYahoo?fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>({candles:[]})):Promise.resolve({candles:[]})
     ]);
     const mov=(movFull&&!movFull.error)?movFull:rowEl._movData;
     const candles=cotRes?.candles||[];
@@ -650,11 +739,11 @@ async function buscar_unused(){
 async function carregarTicker(ticker,cvm){
   setStatus(`Carregando ${ticker}...`);
   try {
-    const movData=await (await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=2026-01-01`)).json();
+    const movData=await (await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=${getPeriodoFrom()}`)).json();
     if(movData.error){setStatus(`Erro: ${movData.error}`);return;}
     if(!movData.total_movimentacoes){setStatus(`Sem movimentações para ${ticker} em 2026.`);return;}
     let candles=[];
-    if(movData.ticker_yahoo){try{const c=await (await fetch(`${FN}/cotacao?ticker=${movData.ticker_yahoo}&from=2026-01-01`)).json();if(c.candles)candles=c.candles;}catch(e){}}
+    if(movData.ticker_yahoo){try{const c=await (await fetch(`${FN}/cotacao?ticker=${movData.ticker_yahoo}&from=${getPeriodoFrom()}`)).json();if(c.candles)candles=c.candles;}catch(e){}}
     const grupos=['Diretoria','Conselho Administração','Controlador','Conselho Fiscal','Órgãos Técnicos ou Consultivos'];
     const porDiaGrupo={};
     try {
