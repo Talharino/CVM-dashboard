@@ -261,9 +261,11 @@ const HDR={apikey:SUPA_KEY,Authorization:`Bearer ${SUPA_KEY}`};
 let gCandles=[], gPorDia={}, gPorDiaGrupo={};
 let gPeriodo='max'; // período selecionado
 
-function getFromCotacao(porDia){
-  const dias = Object.keys(porDia||{}).sort();
-  return dias.length > 0 ? dias[0] : getPeriodoFrom();
+function getFromCotacao(porDia, minDiaTicker){
+  // Se período é máximo, usa o min_dia_ticker retornado pelo Supabase
+  if(gPeriodo==='max' && minDiaTicker) return minDiaTicker;
+  // Para outros períodos, usa o filtro selecionado
+  return getPeriodoFrom();
 }
 
 function getPeriodoFrom(){
@@ -454,7 +456,7 @@ async function carregarLinhaTabela(t){
     const mov=await (await fetch(`${FN}/movimentacoes?cvm=${t.codigo_cvm}&from=${getPeriodoFrom()}`)).json();
     let candles=[];
     if(mov.ticker_yahoo){
-      try { const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=${getFromCotacao(mov.por_dia)}`)).json(); if(c.candles) candles=c.candles; } catch(e){}
+      try { const c=await (await fetch(`${FN}/cotacao?ticker=${mov.ticker_yahoo}&from=${getFromCotacao(mov.por_dia, mov.min_dia_ticker)}`)).json(); if(c.candles) candles=c.candles; } catch(e){}
     }
     const row=document.getElementById(`row-${t.ticker_b3}`);
     if(!row) return;
@@ -584,7 +586,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
     const tickerYahoo=rowEl._viewData?.ticker_yahoo||rowEl._movData?.ticker_yahoo||'';
     // Busca movimentacoes primeiro para saber a data do primeiro trade
     const movFull=await fetch(`${FN}/movimentacoes?cvm=${cvm}&from=${getPeriodoFrom()}`).then(r=>r.json()).catch(()=>null);
-    const fromCot=getFromCotacao(movFull?.por_dia);
+    const fromCot=getFromCotacao(movFull?.por_dia, movFull?.min_dia_ticker);
     const cotRes=tickerYahoo?await fetch(`${FN}/cotacao?ticker=${tickerYahoo}&from=${fromCot}`).then(r=>r.json()).catch(()=>({candles:{}})):{candles:[]};
     const mov=(movFull&&!movFull.error)?movFull:rowEl._movData;
     const candles=cotRes?.candles||[];
@@ -760,7 +762,7 @@ async function carregarTicker(ticker,cvm){
     if(movData.error){setStatus(`Erro: ${movData.error}`);return;}
     if(!movData.total_movimentacoes){setStatus(`Sem movimentações para ${ticker} em 2026.`);return;}
     let candles=[];
-    if(movData.ticker_yahoo){try{const c=await (await fetch(`${FN}/cotacao?ticker=${movData.ticker_yahoo}&from=${getFromCotacao(movData.por_dia)}`)).json();if(c.candles)candles=c.candles;}catch(e){}}
+    if(movData.ticker_yahoo){try{const c=await (await fetch(`${FN}/cotacao?ticker=${movData.ticker_yahoo}&from=${getFromCotacao(movData.por_dia, movData.min_dia_ticker)}`)).json();if(c.candles)candles=c.candles;}catch(e){}}
     const grupos=['Diretoria','Conselho Administração','Controlador','Conselho Fiscal','Órgãos Técnicos ou Consultivos'];
     const porDiaGrupo={};
     try {
