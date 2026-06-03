@@ -21,7 +21,7 @@
     #topFixed { position:sticky; top:0; z-index:100; background:rgba(5,20,45,0.95); backdrop-filter:blur(8px); }
     header { background:rgba(2,10,28,0.98); border-bottom:0.5px solid rgba(255,255,255,0.08); padding:8px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
     header h1 { font-size:17px; font-weight:600; }
-    main { padding:12px 16px; max-width:1400px; margin:0 auto; }
+    main { padding:12px 0; width:100%; }
 
     .search-card { background:var(--bg2); border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid var(--border); }
     .search-row { display:flex; gap:8px; }
@@ -34,10 +34,10 @@
     .sug-item:hover { background:var(--bg2); }
     .sug-item:last-child { border-bottom:none; }
     .sug-item strong { color:var(--line); }
-    .status { text-align:center; padding:2rem; font-size:15px; color:var(--text2); }
+    .status { text-align:center; padding:2rem; font-size:15px; color:var(--text2); margin:0 16px; }
 
     /* METRICS BAR */
-    .metrics-bar { display:flex; gap:8px; margin-bottom:12px; align-items:stretch; }
+    .metrics-bar { display:flex; gap:8px; margin-bottom:12px; align-items:stretch; padding:0 16px; }
     .m-ticker { background:var(--bg2); border-radius:var(--radius); border:0.5px solid var(--border); display:flex; flex-direction:column; overflow:hidden; flex-shrink:0; }
     .m-ticker-hdr { text-align:center; padding:7px 18px 6px; border-bottom:0.5px solid var(--border); font-size:13px; font-weight:500; color:var(--text2); }
     .m-ticker-val { display:flex; align-items:center; justify-content:center; padding:8px 18px; flex:1; font-size:17px; font-weight:500; color:var(--text); }
@@ -58,7 +58,7 @@
     .op-pct .val { font-size:15px; font-weight:500; }
 
     /* CHART (busca direta) */
-    .chart-section { background:#0a1a2e; border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid rgba(255,255,255,0.1); }
+    .chart-section { background:#0a1a2e; border-radius:var(--radius); padding:12px; margin-bottom:12px; border:0.5px solid rgba(255,255,255,0.1); margin:0 16px 12px; }
     .legend { display:flex; gap:14px; margin-bottom:10px; font-size:13px; color:var(--text2); }
     .legend span { display:flex; align-items:center; gap:5px; }
     .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex-shrink:0; }
@@ -68,7 +68,7 @@
     .candle-tooltip { position:absolute; background:var(--bg); border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; font-size:13px; color:var(--text); pointer-events:none; display:none; z-index:10; width:240px; max-width:85vw; }
 
     /* SETOR TABLE */
-    .setor-wrap { background:rgba(10,22,40,0.92); backdrop-filter:blur(6px); border-radius:var(--radius); border:0.5px solid rgba(255,255,255,0.1); overflow:hidden; margin-bottom:12px; }
+    .setor-wrap { background:rgba(10,22,40,0.92); backdrop-filter:blur(6px); border-radius:0; border-left:none; border-right:none; border-top:0.5px solid rgba(255,255,255,0.1); border-bottom:0.5px solid rgba(255,255,255,0.1); overflow:hidden; margin-bottom:0; width:100%; }
     .setor-caption { padding:10px 14px; font-size:15px; font-weight:500; color:#9ca3af; border-bottom:0.5px solid rgba(255,255,255,0.1); background:#0a1628; }
     .setor-table-scroll { overflow-x:auto; }
     .setor-table { width:100%; border-collapse:collapse; font-size:13px; white-space:nowrap; }
