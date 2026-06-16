@@ -360,16 +360,30 @@ const TOP30 = [{"codigo_cvm": "19305", "ticker_b3": "BIOM3", "nome_companhia": "
 (async()=>{
   try {
     const menubar=document.getElementById('menubar');
-    // Primeira opção: Top 30
     const elTop=document.createElement('div');
     elTop.className='menu-item on';
     elTop.textContent='⭐ Top 30';
     elTop.onclick=()=>selecionarTop30(elTop);
     menubar.appendChild(elTop);
-    // Setores
-    const r=await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=setor&setor=not.is.null&order=setor`,{headers:HDR});
-    const data=await r.json();
-    const setores=[...new Set(data.map(d=>d.setor).filter(Boolean))].sort();
+
+    // Setores hardcoded para evitar dependência de fetch na inicialização
+    const SETORES_FIXOS=[
+      'Bens Industriais','Comunicações','Consumo Cíclico','Consumo não Cíclico',
+      'Financeiro','Materiais Básicos','Petróleo, Gás e Biocombustíveis',
+      'Saúde','Tecnologia da Informação','Utilidade Pública'
+    ];
+
+    // Tenta buscar setores do Supabase, usa fixos como fallback
+    let setores = SETORES_FIXOS;
+    try {
+      const r=await fetch(`${SUPA_URL}/rest/v1/TICKER_MAPPING?select=setor&setor=not.is.null&order=setor`,{headers:HDR});
+      if(r.ok){
+        const data=await r.json();
+        const fromDB=[...new Set(data.map(d=>d.setor).filter(Boolean))].sort();
+        if(fromDB.length>0) setores=fromDB;
+      }
+    } catch(e2){ console.warn('Usando setores fixos:', e2.message); }
+
     setores.forEach(s=>{
       const el=document.createElement('div');
       el.className='menu-item';
@@ -377,9 +391,9 @@ const TOP30 = [{"codigo_cvm": "19305", "ticker_b3": "BIOM3", "nome_companhia": "
       el.onclick=()=>selecionarSetor(s,el);
       menubar.appendChild(el);
     });
-    // Carrega Top 30 por default
+
     selecionarTop30(elTop);
-  } catch(e){}
+  } catch(e){ console.error('INIT ERROR:', e); }
 })();
 
 function selecionarTop30(el){
