@@ -594,8 +594,10 @@ async function toggleExpandir(ticker, cvm, rowEl){
   expRow.style.display='table-row';
   gTickerExpandido=ticker;
 
-  // Se já tem dados completos, desenha direto
-  if(rowEl._candles!==null && rowEl._movData?.por_dia && Object.keys(rowEl._movData.por_dia).length>0){
+  // Se já tem dados completos COM versao_max, desenha direto
+  const _pdKeys=Object.keys(rowEl._movData?.por_dia||{});
+  const _temVM=_pdKeys.length>0 && rowEl._movData.por_dia[_pdKeys[0]]?.versao_max!==undefined;
+  if(rowEl._candles!==null && rowEl._movData?.por_dia && _pdKeys.length>0 && _temVM){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       drawInlineChart(ticker, rowEl._candles||[], rowEl._movData.por_dia||{});
       atualizarPct(rowEl);
@@ -625,8 +627,7 @@ async function toggleExpandir(ticker, cvm, rowEl){
     rowEl._movData=mov;
     rowEl._candles=candles;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      console.log('por_dia sample:', Object.entries(mov?.por_dia||{}).slice(0,3).map(([d,v])=>({d,vm:v.versao_max})));
-  drawInlineChart(ticker, candles, mov?.por_dia||{});
+      drawInlineChart(ticker, candles, mov?.por_dia||{});
       atualizarPct(rowEl);
     }));
   } catch(e){ console.error(e); }
