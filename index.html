@@ -220,6 +220,8 @@
       <div class="legend">
         <span><span class="dot" style="background:#AAFF00"></span>Compra Interna</span>
         <span><span class="dot" style="background:#FF6B00"></span>Venda Interna</span>
+        <span style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" style="flex-shrink:0"><circle cx="5.5" cy="5.5" r="5.5" fill="#AAFF00"/><circle cx="5.5" cy="5.5" r="3" fill="#FF0033"/><circle cx="5.5" cy="5.5" r="1.5" fill="white"/></svg>Compra Corrigida</span>
+        <span style="display:flex;align-items:center;gap:5px;"><svg width="11" height="11" style="flex-shrink:0"><circle cx="5.5" cy="5.5" r="5.5" fill="#FF6B00"/><circle cx="5.5" cy="5.5" r="3" fill="#FF0033"/><circle cx="5.5" cy="5.5" r="1.5" fill="white"/></svg>Venda Corrigida</span>
       </div>
       <div class="candle-wrap">
         <canvas id="candleCanvas"></canvas>
@@ -440,8 +442,10 @@ function renderSetorTabela(setor,tickers){
         <div class="expand-inner">
           <div class="inline-chart">
             <div class="inline-legend">
-              <span><span style="width:7px;height:7px;border-radius:50%;background:var(--buy);display:inline-block;margin-right:4px;"></span>Compra Interna</span>
-              <span><span style="width:7px;height:7px;border-radius:50%;background:var(--sell);display:inline-block;margin-right:4px;"></span>Venda Interna</span>
+              <span><span style="width:9px;height:9px;border-radius:50%;background:#AAFF00;display:inline-block;margin-right:4px;"></span>Compra Interna</span>
+              <span><span style="width:9px;height:9px;border-radius:50%;background:#FF6B00;display:inline-block;margin-right:4px;"></span>Venda Interna</span>
+              <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" style="flex-shrink:0"><circle cx="5.5" cy="5.5" r="5.5" fill="#AAFF00"/><circle cx="5.5" cy="5.5" r="3" fill="#FF0033"/><circle cx="5.5" cy="5.5" r="1.5" fill="white"/></svg>Compra Corrigida</span>
+              <span style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" style="flex-shrink:0"><circle cx="5.5" cy="5.5" r="5.5" fill="#FF6B00"/><circle cx="5.5" cy="5.5" r="3" fill="#FF0033"/><circle cx="5.5" cy="5.5" r="1.5" fill="white"/></svg>Venda Corrigida</span>
             </div>
             <canvas id="ic-${t.ticker_b3}" style="width:100%;display:block;cursor:crosshair;"></canvas>
             <canvas id="iv-${t.ticker_b3}" style="width:100%;display:block;margin-top:3px;"></canvas>
@@ -675,19 +679,22 @@ function drawInlineChart(ticker, data, porDia){
   for(let i=0;i<n;i++){
     const d=data[i].date, info=porDia[d]; if(!info) continue;
     const x=xOf(i);
+    const corrigido=(info.versao_max||1)>1;
     if(info.compra>0){
       const yPos=yOf(data[i].low)+dotR+5;
       ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(170,255,0,0.15)';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#AAFF00';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+      if(corrigido){ctx.beginPath();ctx.arc(x,yPos,4.5,0,Math.PI*2);ctx.fillStyle='#FF0033';ctx.fill();ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
+      else{ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();}
     }
     if(info.venda>0){
       const yPos=yOf(data[i].high)-dotR-5;
       ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#FF6B00';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
+      if(corrigido){ctx.beginPath();ctx.arc(x,yPos,4.5,0,Math.PI*2);ctx.fillStyle='#FF0033';ctx.fill();ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
+      else{ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();}
     }
   }
 
@@ -744,6 +751,7 @@ function drawInlineChart(ticker, data, porDia){
         html+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span style="width:6px;height:6px;border-radius:50%;background:#D85A30;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:12px">Venda</span></div>`;
         html+=`<table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}</table>`;
       }
+      if((info.versao_max||1)>1){const nc=(info.versao_max||1)-1;html+=`<div style="margin-top:8px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,0,51,0.15);border:.5px solid #FF0033;border-radius:4px;padding:3px 9px;font-size:11px;color:#FF0033;font-weight:500;">⚠ Correção Reportada: ${nc}</span></div>`;}
     }
     tt.innerHTML=html; tt.style.display='block';
     const wR=cc.parentElement.getBoundingClientRect();
@@ -858,13 +866,22 @@ function drawMainChart(){
   const dotR=9;
   for(let i=0;i<n;i++){
     const d=data[i].date,info=porDia[d];if(!info)continue;const x=xOf(i);
+    const corrigido=(info.versao_max||1)>1;
     if(info.compra>0){
       const yPos=yOf(data[i].low)+dotR+5;
       ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(170,255,0,0.15)';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#AAFF00';ctx.fill();
       ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
-    }
+      if(corrigido){ctx.beginPath();ctx.arc(x,yPos,4.5,0,Math.PI*2);ctx.fillStyle='#FF0033';ctx.fill();ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
+      else{ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();}}
+    if(info.venda>0){
+      const yPos=yOf(data[i].high)-dotR-5;
+      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#FF6B00';ctx.fill();
+      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      if(corrigido){ctx.beginPath();ctx.arc(x,yPos,4.5,0,Math.PI*2);ctx.fillStyle='#FF0033';ctx.fill();ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
+      else{ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();}}
+  }
     if(info.venda>0){
       const yPos=yOf(data[i].high)-dotR-5;
       ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
@@ -904,6 +921,7 @@ function drawMainChart(){
       html+=`<div style="border-top:0.5px solid var(--border);margin:8px 0 6px"></div>`;
       if(info.compra>0){const pF=vF>0?fmtPct((info.vol_compra||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_compra||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#AAFF00;flex-shrink:0"></span><span style="font-weight:500;color:#1D9E75;font-size:13px">Compra</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_compra||0))}${rS('Qtde',fmtN(info.qtd_compra||0))}${rS('% Vol. Financ.',pF,'#1D9E75')}${rS('% Vol. Qtde',pQ,'#1D9E75')}`;const gC=Object.entries(grps).filter(([,g])=>(g.compra||0)>0);if(gC.length){html+=dv();for(const[g,gi]of gC)html+=rS(g,`${fmtN(gi.qtd_compra||0)} · ${fmt(gi.vol_compra||0)}`);}html+=`</table>`;if(info.venda>0)html+=`<div style="border-top:0.5px solid var(--border);margin:6px 0 5px"></div>`;}
       if(info.venda>0){const pF=vF>0?fmtPct((info.vol_venda||0)/vF*100):'—',pQ=qD>0?fmtPct((info.qtd_venda||0)/qD*100):'—';html+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="width:7px;height:7px;border-radius:50%;background:#FF6B00;flex-shrink:0"></span><span style="font-weight:500;color:#D85A30;font-size:13px">Venda</span></div><table style="width:100%;border-collapse:collapse;table-layout:fixed">${rS('Vol. Financ.',fmt(info.vol_venda||0))}${rS('Qtde',fmtN(info.qtd_venda||0))}${rS('% Vol. Financ.',pF,'#D85A30')}${rS('% Vol. Qtde',pQ,'#D85A30')}`;const gV=Object.entries(grps).filter(([,g])=>(g.venda||0)>0);if(gV.length){html+=dv();for(const[g,gi]of gV)html+=rS(g,`${fmtN(gi.qtd_venda||0)} · ${fmt(gi.vol_venda||0)}`);}html+=`</table>`;}
+      if((info.versao_max||1)>1){const nc=(info.versao_max||1)-1;html+=`<div style="margin-top:8px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,0,51,0.15);border:.5px solid #FF0033;border-radius:4px;padding:3px 9px;font-size:11px;color:#FF0033;font-weight:500;">⚠ Correção Reportada: ${nc}</span></div>`;}
     }
     tt.innerHTML=html;tt.style.display='block';
     const wR=tt.parentElement.getBoundingClientRect();
