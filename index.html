@@ -472,14 +472,6 @@ async function carregarLinhaTabela(t){
         prazoEl.innerHTML=`<span class="prazo-val ${cls}">${d}d</span>`;
       }
     }
-    // Preenche coluna de trades corrigidos
-    const corrEl=document.getElementById(`corr-${t.ticker_b3}`);
-    if(corrEl){
-      const tc=mov.trades_corrigidos||0;
-      const totalOps=(mov.totais?.compra||0)+(mov.totais?.venda||0);
-      const cls=tc===0?'corr-ok':tc<=3?'corr-low':tc<=9?'corr-mid':'corr-high';
-      corrEl.innerHTML=`<span class="${cls}">${tc}</span><div class="corr-sub">de ${totalOps} trades</div>`;
-    }
     while(row.children.length>3) row.removeChild(row.lastChild);
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
     if(totC===0 && totV===0){
@@ -493,6 +485,14 @@ async function carregarLinhaTabela(t){
     row._movData=mov; row._candles=candles;
     const tot=totC+totV;
     row._totalOps=tot;
+    // Preenche coluna de trades corrigidos (após dados carregados)
+    const corrEl=document.getElementById(`corr-${t.ticker_b3}`);
+    if(corrEl){
+      const tc=mov.trades_corrigidos||0;
+      const totalOps=tot;
+      const cls=tc===0?'corr-ok':tc<=3?'corr-low':tc<=9?'corr-mid':'corr-high';
+      corrEl.innerHTML=`<span class="${cls}">${tc}</span><div class="corr-sub">de ${totalOps} trades</div>`;
+    }
     reordenarTabela();
   } catch(e){
     const row=document.getElementById(`row-${t.ticker_b3}`);
