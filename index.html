@@ -882,14 +882,6 @@ function drawMainChart(){
       if(corrigido){ctx.beginPath();ctx.arc(x,yPos,4.5,0,Math.PI*2);ctx.fillStyle='#FF0033';ctx.fill();ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
       else{ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();}}
   }
-    if(info.venda>0){
-      const yPos=yOf(data[i].high)-dotR-5;
-      ctx.beginPath();ctx.arc(x,yPos,dotR+4,0,Math.PI*2);ctx.fillStyle='rgba(255,107,0,0.18)';ctx.fill();
-      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.fillStyle='#FF6B00';ctx.fill();
-      ctx.beginPath();ctx.arc(x,yPos,dotR,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.beginPath();ctx.arc(x,yPos,2.5,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fill();
-    }
-  }
   const vctx=vc.getContext('2d');
   const VP_L=PL,VP_R=PR,VP_T=8,VP_B=8,vH=H_V-VP_T-VP_B;
   let maxVol=0;for(const d of data.map(c=>c.date)){const info=porDia[d];if(info){const t=(info.vol_compra||0)+(info.vol_venda||0);if(t>maxVol)maxVol=t;}}
