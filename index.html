@@ -625,7 +625,8 @@ async function toggleExpandir(ticker, cvm, rowEl){
     rowEl._movData=mov;
     rowEl._candles=candles;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      drawInlineChart(ticker, candles, mov?.por_dia||{});
+      console.log('por_dia sample:', Object.entries(mov?.por_dia||{}).slice(0,3).map(([d,v])=>({d,vm:v.versao_max})));
+  drawInlineChart(ticker, candles, mov?.por_dia||{});
       atualizarPct(rowEl);
     }));
   } catch(e){ console.error(e); }
