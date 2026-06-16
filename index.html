@@ -90,6 +90,12 @@
     .setor-table tbody tr.data-row.ativo .chevron { transform:rotate(90deg); color:var(--line); }
     .td-ticker { padding:8px 10px; border-right:0.5px solid rgba(255,255,255,0.1); vertical-align:middle; background:#102040; }
     .td-prazo { padding:0 10px; text-align:center; border-right:0.5px solid rgba(255,255,255,0.1); vertical-align:middle; width:55px; background:#102040; }
+    .td-corr { padding:0 8px; text-align:center; border-right:0.5px solid rgba(255,255,255,0.1); vertical-align:middle; width:65px; background:#0f1e35; }
+    .corr-ok  { color:#AAFF00; font-weight:700; font-size:13px; }
+    .corr-low { color:#e6a817; font-weight:700; font-size:13px; }
+    .corr-mid { color:#FF8C00; font-weight:700; font-size:13px; }
+    .corr-high{ color:#D85A30; font-weight:700; font-size:13px; }
+    .corr-sub { font-size:9px; color:#7b9ec8; margin-top:1px; }
     .prazo-val { font-size:13px; font-weight:700; }
     .prazo-fast { color:#AAFF00; }
     .prazo-mid { color:#e6a817; }
@@ -228,7 +234,8 @@
           <thead>
             <tr>
               <th class="th-t" rowspan="2" style="vertical-align:middle;padding:8px 12px;">Ticker B3</th>
-              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 10px;font-size:12px;font-weight:500;color:#ffffff;border-right:0.5px solid rgba(255,255,255,0.1);white-space:nowrap;background:#0d1f3c;">Tempo Médio<br>Informado</th>
+              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 8px;font-size:12px;font-weight:500;color:#ffffff;border-right:0.5px solid rgba(255,255,255,0.1);white-space:nowrap;background:#0d1f3c;">Tempo Médio<br>Informado</th>
+              <th rowspan="2" style="vertical-align:middle;text-align:center;padding:6px 8px;font-size:11px;font-weight:500;color:#ffffff;border-right:0.5px solid rgba(255,255,255,0.1);white-space:normal;line-height:1.3;background:#0d1f3c;max-width:70px;">Qtde de Trades<br>Corrigidos<br>Reportados</th>
               <th class="th-b" colspan="6" style="border-right:0.5px solid var(--border);">Compra</th>
               <th class="th-s" colspan="6">Venda</th>
             </tr>
@@ -424,11 +431,12 @@ function renderSetorTabela(setor,tickers){
         ${t.segmento?`<div class="td-ticker-sub">${t.segmento}</div>`:''}
       </td>
       <td class="td-prazo" id="prazo-${t.ticker_b3}"><span class="skel" style="width:28px;height:12px;display:inline-block;"></span></td>
+      <td class="td-corr" id="corr-${t.ticker_b3}"><span class="skel" style="width:24px;height:12px;display:inline-block;"></span></td>
       <td class="td-b v-dash" colspan="6" style="border-right:0.5px solid var(--border);text-align:center;"><span class="skel" style="width:70%;height:11px;display:inline-block;"></span></td>
       <td class="td-s v-dash" colspan="6" style="text-align:center;"><span class="skel" style="width:60%;height:11px;display:inline-block;"></span></td>
     </tr>
     <tr class="expand-row" id="exp-${t.ticker_b3}" style="display:none">
-      <td colspan="13">
+      <td colspan="14">
         <div class="expand-inner">
           <div class="inline-chart">
             <div class="inline-legend">
@@ -463,6 +471,14 @@ async function carregarLinhaTabela(t){
         const cls=d<=15?'prazo-fast':d<=30?'prazo-mid':'prazo-slow';
         prazoEl.innerHTML=`<span class="prazo-val ${cls}">${d}d</span>`;
       }
+    }
+    // Preenche coluna de trades corrigidos
+    const corrEl=document.getElementById(`corr-${t.ticker_b3}`);
+    if(corrEl){
+      const tc=mov.trades_corrigidos||0;
+      const totalOps=(mov.totais?.compra||0)+(mov.totais?.venda||0);
+      const cls=tc===0?'corr-ok':tc<=3?'corr-low':tc<=9?'corr-mid':'corr-high';
+      corrEl.innerHTML=`<span class="${cls}">${tc}</span><div class="corr-sub">de ${totalOps} trades</div>`;
     }
     while(row.children.length>2) row.removeChild(row.lastChild);
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
