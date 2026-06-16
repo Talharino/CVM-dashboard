@@ -487,6 +487,7 @@ async function carregarLinhaTabela(t){
     row._totalOps=tot;
     // Preenche coluna de trades corrigidos (após dados carregados)
     const corrEl=document.getElementById(`corr-${t.ticker_b3}`);
+    console.log('corr debug:', t.ticker_b3, 'trades_corrigidos:', mov.trades_corrigidos, 'corrEl:', !!corrEl, 'children:', corrEl?.parentElement?.children?.length);
     if(corrEl){
       const tc=mov.trades_corrigidos||0;
       const totalOps=tot;
