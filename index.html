@@ -480,7 +480,7 @@ async function carregarLinhaTabela(t){
       const cls=tc===0?'corr-ok':tc<=3?'corr-low':tc<=9?'corr-mid':'corr-high';
       corrEl.innerHTML=`<span class="${cls}">${tc}</span><div class="corr-sub">de ${totalOps} trades</div>`;
     }
-    while(row.children.length>2) row.removeChild(row.lastChild);
+    while(row.children.length>3) row.removeChild(row.lastChild);
     const totC=(mov.totais?.compra||0), totV=(mov.totais?.venda||0);
     if(totC===0 && totV===0){
       row.style.display='none';
@@ -496,7 +496,7 @@ async function carregarLinhaTabela(t){
     reordenarTabela();
   } catch(e){
     const row=document.getElementById(`row-${t.ticker_b3}`);
-    if(row){ while(row.children.length>2) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
+    if(row){ while(row.children.length>3) row.removeChild(row.lastChild); row.insertAdjacentHTML('beforeend', buildEmptyCols()); }
   }
 }
 
