@@ -514,12 +514,27 @@ function buildCols(mov, candles){
   for(const d of Object.values(mov.por_dia||{})){qtdC+=d.qtd_compra||0;volC+=d.vol_compra||0;qtdV+=d.qtd_venda||0;volV+=d.vol_venda||0;}
   const pmC=qtdC>0?volC/qtdC:0, pmV=qtdV>0?volV/qtdV:0;
 
-  const tQ=candles.reduce((s,c)=>s+(c.volume||0),0);
-  const tV=candles.reduce((s,c)=>s+(c.volume||0)*(c.close||0),0);
-  const pCQ=tQ>0&&qtdC>0?((qtdC/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pCV=tV>0&&volC>0?((volC/tV)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVQ=tQ>0&&qtdV>0?((qtdV/tQ)*100).toFixed(2).replace('.',',')+'%':'—';
-  const pVV=tV>0&&volV>0?((volV/tV)*100).toFixed(2).replace('.',',')+'%':'—';
+  // % calculados SOMENTE nos dias com trade do insider (numerador e denominador no mesmo conjunto de dias)
+  // Para cada métrica (compra/venda × qtd/volume), o conjunto de dias é o dos dias com aquela operação específica.
+  const porDia = mov.por_dia || {};
+  const candlesByDate = {};
+  for(const c of candles){ if(c && c.date) candlesByDate[c.date] = c; }
+  let tQ_C=0, tV_C=0, tQ_V=0, tV_V=0;
+  for(const [dia, info] of Object.entries(porDia)){
+    const c = candlesByDate[dia];
+    if(!c) continue;
+    const qtdMercado = c.volume || 0;
+    const precoMedio = (c.open && c.close) ? (c.open + c.close)/2 : (c.close || c.open || 0);
+    const volMercado = qtdMercado * precoMedio;
+    if((info.qtd_compra||0) > 0) tQ_C += qtdMercado;
+    if((info.vol_compra||0) > 0) tV_C += volMercado;
+    if((info.qtd_venda||0)  > 0) tQ_V += qtdMercado;
+    if((info.vol_venda||0)  > 0) tV_V += volMercado;
+  }
+  const pCQ=tQ_C>0&&qtdC>0?((qtdC/tQ_C)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pCV=tV_C>0&&volC>0?((volC/tV_C)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVQ=tQ_V>0&&qtdV>0?((qtdV/tQ_V)*100).toFixed(2).replace('.',',')+'%':'—';
+  const pVV=tV_V>0&&volV>0?((volV/tV_V)*100).toFixed(2).replace('.',',')+'%':'—';
   const d='<span class="v-dash">—</span>';
   const hC=(t.compra||0)>0, hV=(t.venda||0)>0;
   return `
@@ -768,7 +783,8 @@ function drawInlineChart(ticker, data, porDia){
     const i=Math.floor((mx-PL)/step);
     if(i<0||i>=n){tt.style.display='none';return;}
     const c=data[i],info=porDia[c.date]||{};
-    const volFin=(c.volume||0)*(c.close||0),qtdDia=c.volume||0;
+    const precoMedio=(c.open&&c.close)?(c.open+c.close)/2:(c.close||c.open||0);
+    const volFin=(c.volume||0)*precoMedio,qtdDia=c.volume||0;
     const varPct=(c.open&&c.close)?((c.close-c.open)/c.open*100):null;
     const varColor=varPct===null?'':(varPct>=0?'#1D9E75':'#D85A30');
     const varStr=varPct!==null?((varPct>=0?'+':'')+varPct.toFixed(2).replace('.',',')+' %'):'—';
