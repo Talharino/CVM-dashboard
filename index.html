@@ -114,7 +114,7 @@
 
     .expand-row td { padding:0; background:var(--bg); border-bottom:0.5px solid var(--border); }
     .expand-inner { padding:0; }
-    .inline-chart { background:#0a1a2e; padding:10px 0 0 0; border-top:0.5px solid rgba(255,255,255,0.1); }
+    .inline-chart { background:#0a1a2e; padding:10px 0 0 0; border-top:0.5px solid rgba(255,255,255,0.1); position:relative; }
     .inline-legend { display:flex; gap:12px; margin-bottom:8px; font-size:11px; color:var(--text2); padding:0 12px; }
     .inline-legend span { display:flex; align-items:center; gap:4px; }
 
@@ -815,8 +815,14 @@ function drawInlineChart(ticker, data, porDia){
     }
     tt.innerHTML=html; tt.style.display='block';
     const wR=cc.parentElement.getBoundingClientRect();
-    tt.style.left=Math.min(clientX-wR.left+10,wR.width-230)+'px';
-    tt.style.top=Math.max(clientY-wR.top-10,0)+'px';
+    const tipW=tt.offsetWidth, tipH=tt.offsetHeight;
+    let relX=clientX-wR.left+15, relY=clientY-wR.top+15;
+    if(relX+tipW>wR.width)  relX=(clientX-wR.left)-tipW-15;
+    if(relY+tipH>wR.height) relY=(clientY-wR.top)-tipH-15;
+    if(relX<5) relX=5;
+    if(relY<5) relY=5;
+    tt.style.left=relX+'px';
+    tt.style.top=relY+'px';
   }
   cc.onmousemove=e=>showTip(e.clientX,e.clientY,cc);
   cc.onmouseleave=()=>tt.style.display='none';
