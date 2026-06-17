@@ -774,8 +774,8 @@ function drawInlineChart(ticker, data, porDia){
 
   // tooltip inline
   function fmtPct(v){return v.toFixed(2).replace('.',',')+'%';}
-  function rT(l,v,c){const s=c?`style="color:${c};font-weight:500"`:'';return `<tr><td style="color:var(--text2);padding:1px 0;white-space:nowrap;font-size:11px">${l}</td><td ${s} style="text-align:right;padding:1px 0 1px 6px;font-size:11px;white-space:nowrap">${v}</td></tr>`;}
-  function rS(l,v,c){const s=c?`style="color:${c};font-weight:500"`:'';return `<tr><td style="color:var(--text2);padding:1px 0 1px 8px;font-size:10px;white-space:nowrap">${l}</td><td ${s} style="text-align:right;padding:1px 0 1px 4px;font-size:10px;white-space:nowrap">${v}</td></tr>`;}
+  function rT(l,v,c){const colorStyle=c?`color:${c};font-weight:500;`:'';return `<tr><td style="color:var(--text2);padding:1px 0;white-space:nowrap;font-size:11px">${l}</td><td style="${colorStyle}text-align:right;padding:1px 0 1px 6px;font-size:11px;white-space:nowrap">${v}</td></tr>`;}
+  function rS(l,v,c){const colorStyle=c?`color:${c};font-weight:500;`:'';return `<tr><td style="color:var(--text2);padding:1px 0 1px 8px;font-size:10px;white-space:nowrap">${l}</td><td style="${colorStyle}text-align:right;padding:1px 0 1px 4px;font-size:10px;white-space:nowrap">${v}</td></tr>`;}
 
   function showTip(clientX,clientY,canvas){
     const rect=canvas.getBoundingClientRect();
